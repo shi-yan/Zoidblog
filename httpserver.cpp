@@ -1,215 +1,35 @@
 #include "httpserver.h"
 #include "httpheader.h"
+#include "worker.h"
 
-int onMessageBegin(http_parser *parser)
+HttpServer::HttpServer(quint16 port, QObject* parent )
+    : QTcpServer(parent), disabled(false),incommingCount(0)
 {
-    qDebug()<<"Parse Message Begin";
-    return 0;
+    qDebug()<<"before listening!";
+    worker1=new Worker("Worker 1");
+    worker1->start();
+    worker2=new Worker("Worker 2");
+    worker2->start();
+    listen(QHostAddress::Any, port);
+    qDebug()<<"listening!";
 }
 
-int onPath(http_parser *parser, const char *p,size_t len)
-{
-    QByteArray buffer(p,len);
-    //qDebug()<<"onPath:"<<QString(buffer);
-
-    ((HttpHeader*)parser->data)->setPath(QString(buffer));
-
-    return 0;
-}
-
-int onQueryString(http_parser *parser, const char *p,size_t len)
-{
-    QByteArray buffer(p,len);
-   // qDebug()<<"onQueryString:"<<QString(buffer);
-    ((HttpHeader*)parser->data)->setQueryString(QString(buffer));
-    return 0;
-}
-
-int onUrl(http_parser *parser, const char *p,size_t len)
-{
-    QByteArray buffer(p,len);
-    //qDebug()<<"onUrl:"<<QString(buffer);
-    ((HttpHeader*)parser->data)->setUrl(QString(buffer));
-    return 0;
-}
-
-int onFragment(http_parser *parser, const char *p,size_t len)
-{
-    QByteArray buffer(p,len);
-  //  qDebug()<<"onFragment:"<<QString(buffer);
-
-    ((HttpHeader*)parser->data)->setFragment(QString(buffer));
-    return 0;
-}
-
-int onHeaderField(http_parser *parser, const char *p,size_t len)
-{
-    QByteArray buffer(p,len);
-  //  qDebug()<<"onHeaderField:"<<QString(buffer);
-    ((HttpHeader*)parser->data)->setCurrentHeaderField(QString(buffer));
-    return 0;
-}
-
-int onHeaderValue(http_parser *parser, const char *p,size_t len)
-{
-    QByteArray buffer(p,len);
-   // qDebug()<<"onHeaderValue:"<<QString(buffer);
-    ((HttpHeader*)parser->data)->addHeaderInfo(QString(buffer));
-    return 0;
-}
-
-int onHeadersComplete(http_parser *parser)
-{
-    ((HttpHeader*)parser->data)->setHost(((HttpHeader*)parser->data)->getHeaderInfo("Host"));
-    //qDebug()<<"Parse Header Complete";
-    return 0;
-}
-
-int onBody(http_parser *parser, const char *p,size_t len)
-{
-    QByteArray buffer(p,len);
-    //qDebug()<<"onBody:"<<QString(buffer);
-    ((HttpHeader*)parser->data)->setBody(buffer);
-    return 0;
-}
-
-int onMessageComplete(http_parser *parser)
-{
-    qDebug()<<"Parse Message Complete";
-    return 0;
-}
-
-void HttpServer::readClient()
+void HttpServer::incomingConnection(int socket)
 {
     if (disabled)
         return;
 
-    // This slot is called when the client sent data to the server. The
-    // server looks if it was a get request and sends a very simple HTML
-    // document back.
-    QTcpSocket* socket = (QTcpSocket*)sender();
-    if (socket->canReadLine())
-    {
+    // When a new client connects, the server constructs a QTcpSocket and all
+    // communication with the client is done over this QTcpSocket. QTcpSocket
+    // works asynchronously, this means that all the communication is done
+    // in the two slots readClient() and discardClient().
+    QTcpSocket* s = new QTcpSocket(this);
+    connect(s, SIGNAL(readyRead()), incommingCount%2?worker1:worker2    , SLOT(readClient()));
+    connect(s, SIGNAL(disconnected()), incommingCount%2?worker1:worker2 , SLOT(discardClient()));
+    s->setSocketDescriptor(socket);
 
-     /*   QString firstLine;
+    //QtServiceBase::instance()->logMessage("New Connection");
+    qDebug()<<"New Connection!"<<socket;
 
-        QStringList tokens = (firstLine=QString(socket->readLine())).split(QRegExp("[ \r\n][ \r\n]*"));
-
-        qDebug()<<firstLine;
-
-        if (tokens[0] == "GET")
-        {
-
-
-
-
-            QTextStream os(socket);
-            os.setAutoDetectUnicode(true);
-            os << "HTTP/1.0 200 Ok\r\n"
-                "Content-Type: text/html; charset=\"utf-8\"\r\n"
-                "\r\n"
-                "<h1>Nothing to see here</h1>\n"
-                << QDateTime::currentDateTime().toString() << "\n"
-                <<"received:<br/>"
-               <<firstLine<<"<br/>";
-
-            while(socket->canReadLine())
-            {
-                os<<socket->readLine()<<"<br>";
-            }
-
-
-            socket->close();
-
-          //  QtServiceBase::instance()->logMessage("Wrote to client");
-
-            if (socket->state() == QTcpSocket::UnconnectedState) {
-                delete socket;
-               // QtServiceBase::instance()->logMessage("Connection closed");
-
-                qDebug()<<"closed by read function";
-            }
-            else
-                qDebug()<<"socket state:"<<socket->state();
-
-      */
-
-
-
-        HttpHeader header;
-
-
-        QByteArray inCommingContent=socket->readAll();
-
-
-
-
-        http_parser_settings settings;
-
-        settings.on_message_begin=onMessageBegin;
-        settings. on_path=onPath;
-        settings. on_query_string=onQueryString;
-        settings. on_url=onUrl;
-        settings. on_fragment=onFragment;
-        settings. on_header_field=onHeaderField;
-        settings. on_header_value=onHeaderValue;
-        settings. on_headers_complete=onHeadersComplete;
-        settings. on_body=onBody;
-        settings. on_message_complete=onMessageComplete;
-
-        http_parser *parser=(http_parser*)malloc(sizeof(http_parser));
-
-        http_parser_init(parser,HTTP_REQUEST);
-        parser->data = &header;
-
-        qDebug()<<"before execution. Buffer size:"<<inCommingContent.count();
-
-        size_t nparsed = http_parser_execute(parser,&settings,inCommingContent.constData(),inCommingContent.count());
-
-        qDebug()<<"finish execution";
-
-        if(parser->upgrade)
-        {
-            qDebug()<<"upgrade";
-        }
-        else if(nparsed!=inCommingContent.count())
-        {
-            qDebug()<<"nparsed:"<<nparsed<<"buffer size:"<<inCommingContent.count();
-        }
-        else
-        {
-            qDebug()<<"parsing seems to be succeed!";
-
-            qDebug()<<parser->method;
-        }
-
-
-        free(parser);
-
-
-
-
-
-
-
-
-
-
-
-
-        QTextStream os(socket);
-
-        os << "HTTP/1.0 200 Ok\r\n"
-            "Content-Type: text/html; charset=\"utf-8\"\r\n"
-            "\r\n"
-            "<h1>Nothing to see here</h1>\n"
-            << QDateTime::currentDateTime().toString() << "\n"
-            <<"received:<br/>"
-              <<header.toString();
-
-        socket->close();
-
-
-
-        }
-    }
+    incommingCount++;
+}

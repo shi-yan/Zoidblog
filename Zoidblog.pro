@@ -18,9 +18,13 @@ TEMPLATE = app
 SOURCES += main.cpp \
     httpserver.cpp \
     http_parser.c \
-    httpheader.cpp
+    httpheader.cpp \
+    worker.cpp \
+    swift.cpp
 
 HEADERS += \
     httpserver.h \
     http_parser.h \
-    httpheader.h
+    httpheader.h \
+    worker.h \
+    swift.h
