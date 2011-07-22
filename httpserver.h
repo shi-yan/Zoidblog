@@ -6,6 +6,9 @@
 #include <QStringList>
 #include <QDateTime>
 #include <QDebug>
+#include "http_parser.h"
+
+
 
 class HttpServer : public QTcpServer
  {
@@ -46,61 +49,17 @@ class HttpServer : public QTcpServer
      }
 
  private slots:
-     void readClient()
-     {
-         if (disabled)
-             return;
-
-         // This slot is called when the client sent data to the server. The
-         // server looks if it was a get request and sends a very simple HTML
-         // document back.
-         QTcpSocket* socket = (QTcpSocket*)sender();
-         if (socket->canReadLine()) {
-
-             QString firstLine;
-
-             QStringList tokens = (firstLine=QString(socket->readLine())).split(QRegExp("[ \r\n][ \r\n]*"));
-
-             qDebug()<<firstLine;
-
-             if (tokens[0] == "GET") {
+     void readClient();
 
 
-
-
-                 QTextStream os(socket);
-                 os.setAutoDetectUnicode(true);
-                 os << "HTTP/1.0 200 Ok\r\n"
-                     "Content-Type: text/html; charset=\"utf-8\"\r\n"
-                     "\r\n"
-                     "<h1>Nothing to see here</h1>\n"
-                     << QDateTime::currentDateTime().toString() << "\n"
-                     <<"received:<br/>"
-                    <<firstLine<<"<br/>";
-
-                 while(socket->canReadLine())
-                 {
-                     os<<socket->readLine()<<"<br>";
-                 }
-
-
-                 socket->close();
-
-               //  QtServiceBase::instance()->logMessage("Wrote to client");
-
-                 if (socket->state() == QTcpSocket::UnconnectedState) {
-                     delete socket;
-                    // QtServiceBase::instance()->logMessage("Connection closed");
-                 }
-             }
-         }
-     }
      void discardClient()
      {
          QTcpSocket* socket = (QTcpSocket*)sender();
          socket->deleteLater();
 
         // QtServiceBase::instance()->logMessage("Connection closed");
+
+         qDebug()<<"closed by discard function";
      }
 
  private:
