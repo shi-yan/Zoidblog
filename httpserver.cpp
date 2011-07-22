@@ -1,20 +1,81 @@
 #include "httpserver.h"
+#include "httpheader.h"
 
-int header_value_cbdd (http_parser *parser, const char *p,size_t len)
+int onMessageBegin(http_parser *parser)
 {
-    //assert(parser);
+    qDebug()<<"Parse Message Begin";
+    return 0;
+}
 
-    char *buffer=new char[len+1];
+int onPath(http_parser *parser, const char *p,size_t len)
+{
+    QByteArray buffer(p,len);
+    //qDebug()<<"onPath:"<<QString(buffer);
 
-    strncpy(buffer,p,len);
+    ((HttpHeader*)parser->data)->setPath(QString(buffer));
 
-    buffer[len]=0;
+    return 0;
+}
 
-    qDebug()<<"==========";
-    qDebug()<<buffer;
-    qDebug()<<"==========";
+int onQueryString(http_parser *parser, const char *p,size_t len)
+{
+    QByteArray buffer(p,len);
+   // qDebug()<<"onQueryString:"<<QString(buffer);
+    ((HttpHeader*)parser->data)->setQueryString(QString(buffer));
+    return 0;
+}
 
-    delete [] buffer;
+int onUrl(http_parser *parser, const char *p,size_t len)
+{
+    QByteArray buffer(p,len);
+    //qDebug()<<"onUrl:"<<QString(buffer);
+    ((HttpHeader*)parser->data)->setUrl(QString(buffer));
+    return 0;
+}
+
+int onFragment(http_parser *parser, const char *p,size_t len)
+{
+    QByteArray buffer(p,len);
+  //  qDebug()<<"onFragment:"<<QString(buffer);
+
+    ((HttpHeader*)parser->data)->setFragment(QString(buffer));
+    return 0;
+}
+
+int onHeaderField(http_parser *parser, const char *p,size_t len)
+{
+    QByteArray buffer(p,len);
+  //  qDebug()<<"onHeaderField:"<<QString(buffer);
+    ((HttpHeader*)parser->data)->setCurrentHeaderField(QString(buffer));
+    return 0;
+}
+
+int onHeaderValue(http_parser *parser, const char *p,size_t len)
+{
+    QByteArray buffer(p,len);
+   // qDebug()<<"onHeaderValue:"<<QString(buffer);
+    ((HttpHeader*)parser->data)->addHeaderInfo(QString(buffer));
+    return 0;
+}
+
+int onHeadersComplete(http_parser *parser)
+{
+    ((HttpHeader*)parser->data)->setHost(((HttpHeader*)parser->data)->getHeaderInfo("Host"));
+    //qDebug()<<"Parse Header Complete";
+    return 0;
+}
+
+int onBody(http_parser *parser, const char *p,size_t len)
+{
+    QByteArray buffer(p,len);
+    //qDebug()<<"onBody:"<<QString(buffer);
+    ((HttpHeader*)parser->data)->setBody(buffer);
+    return 0;
+}
+
+int onMessageComplete(http_parser *parser)
+{
+    qDebug()<<"Parse Message Complete";
     return 0;
 }
 
@@ -75,6 +136,7 @@ void HttpServer::readClient()
 
 
 
+        HttpHeader header;
 
 
         QByteArray inCommingContent=socket->readAll();
@@ -84,21 +146,21 @@ void HttpServer::readClient()
 
         http_parser_settings settings;
 
-        settings.on_message_begin=0;
-        settings. on_path=0;
-        settings. on_query_string=0;
-        settings. on_url=0;
-        settings. on_fragment=0;
-        settings. on_header_field=header_value_cbdd;
-        settings. on_header_value=header_value_cbdd;
-        settings.      on_headers_complete=0;
-        settings. on_body=0;
-        settings.      on_message_complete=0;
+        settings.on_message_begin=onMessageBegin;
+        settings. on_path=onPath;
+        settings. on_query_string=onQueryString;
+        settings. on_url=onUrl;
+        settings. on_fragment=onFragment;
+        settings. on_header_field=onHeaderField;
+        settings. on_header_value=onHeaderValue;
+        settings. on_headers_complete=onHeadersComplete;
+        settings. on_body=onBody;
+        settings. on_message_complete=onMessageComplete;
 
         http_parser *parser=(http_parser*)malloc(sizeof(http_parser));
 
         http_parser_init(parser,HTTP_REQUEST);
-        parser->data = socket;
+        parser->data = &header;
 
         qDebug()<<"before execution. Buffer size:"<<inCommingContent.count();
 
@@ -143,7 +205,7 @@ void HttpServer::readClient()
             "<h1>Nothing to see here</h1>\n"
             << QDateTime::currentDateTime().toString() << "\n"
             <<"received:<br/>"
-              <<inCommingContent;
+              <<header.toString();
 
         socket->close();
 
