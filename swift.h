@@ -1,8 +1,12 @@
 #ifndef SWIFT_H
 #define SWIFT_H
 
-class Swift
+#include <QObject>
+
+class Swift:public QObject
 {
+    Q_OBJECT
+
 public:
     Swift();
 };

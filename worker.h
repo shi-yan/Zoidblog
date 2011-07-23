@@ -8,8 +8,7 @@ class Worker:public QThread
 {
     Q_OBJECT
     QString workerName;
-
-    http_parser *parser;
+    http_parser parser;
 
 public:
     void run();

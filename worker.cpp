@@ -118,18 +118,16 @@ void Worker::readClient()
         settings. on_body=onBody;
         settings. on_message_complete=onMessageComplete;
 
-        http_parser *parser=(http_parser*)malloc(sizeof(http_parser));
-
-        http_parser_init(parser,HTTP_REQUEST);
-        parser->data = &header;
+        http_parser_init(&parser,HTTP_REQUEST);
+        parser.data = &header;
 
         qDebug()<<"before execution. Buffer size:"<<inCommingContent.count();
 
-        size_t nparsed = http_parser_execute(parser,&settings,inCommingContent.constData(),inCommingContent.count());
+        size_t nparsed = http_parser_execute(&parser,&settings,inCommingContent.constData(),inCommingContent.count());
 
         qDebug()<<"finish execution";
 
-        if(parser->upgrade)
+        if(parser.upgrade)
         {
             qDebug()<<"upgrade";
         }
@@ -141,7 +139,7 @@ void Worker::readClient()
         {
             qDebug()<<"parsing seems to be succeed!";
 
-            qDebug()<<parser->method;
+            qDebug()<<parser.method;
         }
 
 

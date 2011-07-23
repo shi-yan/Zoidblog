@@ -20,11 +20,15 @@ SOURCES += main.cpp \
     http_parser.c \
     httpheader.cpp \
     worker.cpp \
-    swift.cpp
+    swift.cpp \
+    session.cpp \
+    sessionmanager.cpp
 
 HEADERS += \
     httpserver.h \
     http_parser.h \
     httpheader.h \
     worker.h \
-    swift.h
+    swift.h \
+    session.h \
+    sessionmanager.h
