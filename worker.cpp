@@ -3,6 +3,9 @@
 #include <QTcpSocket>
 #include <QDateTime>
 #include "httpheader.h"
+#include "httprequest.h"
+#include "httpresponse.h"
+#include "pathtree.h"
 
 
 int onMessageBegin(http_parser *parser)
@@ -102,7 +105,9 @@ void Worker::readClient()
     QTcpSocket* socket = (QTcpSocket*)sender();
     if (socket->canReadLine())
     {
-        HttpHeader header;
+        HttpRequest request;
+        HttpResponse response;
+
         QByteArray inCommingContent=socket->readAll();
 
         http_parser_settings settings;
@@ -119,7 +124,7 @@ void Worker::readClient()
         settings. on_message_complete=onMessageComplete;
 
         http_parser_init(&parser,HTTP_REQUEST);
-        parser.data = &header;
+        parser.data = &request.getHeader();
 
         qDebug()<<"before execution. Buffer size:"<<inCommingContent.count();
 
@@ -143,6 +148,24 @@ void Worker::readClient()
         }
 
 
+        const TaskHandler *th=PathTree::getSingleton().getTaskHandlerByPath(request.getHeader().getPath());
+
+        if(th )
+        {
+            if(!th->isEmpty())
+            {
+                if(th->invoke(request,response))
+                    qDebug()<<"invoke successful!";
+                else
+                    qDebug()<<"invoke unsuccessful!";
+            }
+            else
+                qDebug()<<"no task handler!";
+        }
+        else
+            qDebug()<<"empty task handler!";
+
+
 
         QTextStream os(socket);
 
@@ -152,7 +175,8 @@ void Worker::readClient()
             "<h1>Nothing to see here</h1>\n"
             << QDateTime::currentDateTime().toString() << "\n"
             <<"received:<br/>"<<workerName<<"<br/>\r\n"
-              <<header.toString();
+           <<response.debugInfo<<"<br/>"
+          <<thread()->currentThreadId();
 
         socket->close();
 
@@ -170,5 +194,7 @@ void Worker::discardClient()
 
 void Worker::run()
 {
+    qDebug()<<workerName<<"'s thread id"<<thread()->currentThreadId();
+
     exec();
 }

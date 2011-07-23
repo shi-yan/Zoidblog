@@ -1,4 +1,5 @@
 #include "zoidblog.h"
+#include <QThread>
 
 #include <QDebug>
 
@@ -21,7 +22,11 @@ void Zoidblog::registerHandlers()
 
 void Zoidblog::handlePath(HttpRequest &request,HttpResponse &response)
 {
-    qDebug()<<"inside path!!!!!!!!!!!!!"<<request.debugInfo<<response.debugInfo;
+   response.debugInfo+=request.getHeader().toString();
+   response.debugInfo+=QString("this is inside zoidblog!!! by thread:%1").arg(thread()->currentThreadId());
+   //thread()->currentThreadId();
+
+
 }
 
 void Zoidblog::handleTest(HttpRequest &request,HttpResponse &response)

@@ -128,6 +128,11 @@ public:
         path=_path;
     }
 
+    const QString & getPath()
+    {
+        return path;
+    }
+
     void setHost(const QString &_host)
     {
         host=_host;

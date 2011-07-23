@@ -12,12 +12,19 @@ HttpServer::HttpServer(quint16 port, QObject* parent )
     worker2->start();
     listen(QHostAddress::Any, port);
     qDebug()<<"listening!";
+
+    srand(12341234);
 }
 
 void HttpServer::incomingConnection(int socket)
 {
     if (disabled)
         return;
+
+    incommingCount=rand()%3;
+
+    qDebug()<<"incomming count"<<incommingCount;
+
 
     // When a new client connects, the server constructs a QTcpSocket and all
     // communication with the client is done over this QTcpSocket. QTcpSocket
