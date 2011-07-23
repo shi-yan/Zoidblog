@@ -143,7 +143,6 @@ void Worker::readClient()
         }
 
 
-        free(parser);
 
         QTextStream os(socket);
 

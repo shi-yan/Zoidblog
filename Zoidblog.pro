@@ -20,15 +20,31 @@ SOURCES += main.cpp \
     http_parser.c \
     httpheader.cpp \
     worker.cpp \
-    swift.cpp \
     session.cpp \
-    sessionmanager.cpp
+    sessionmanager.cpp \
+    pathparser.cpp \
+    pathtreenode.cpp \
+    taskhandler.cpp \
+    webapp.cpp \
+    pathtree.cpp \
+    zoidblog.cpp \
+    framework.cpp \
+    httprequest.cpp \
+    httpresponse.cpp
 
 HEADERS += \
     httpserver.h \
     http_parser.h \
     httpheader.h \
     worker.h \
-    swift.h \
     session.h \
-    sessionmanager.h
+    sessionmanager.h \
+    pathparser.h \
+    pathtreenode.h \
+    taskhandler.h \
+    webapp.h \
+    pathtree.h \
+    zoidblog.h \
+    framework.h \
+    httprequest.h \
+    httpresponse.h
