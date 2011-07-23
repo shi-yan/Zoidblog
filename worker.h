@@ -14,9 +14,13 @@ public:
     void run();
     Worker(const QString _name);
 
+
+
 public slots:
     void readClient();
     void discardClient();
+
+    void newSocket(int socketid);
 };
 
 #endif // WORKER_H

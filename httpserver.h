@@ -14,10 +14,7 @@ class HttpServer : public QTcpServer
      Q_OBJECT
  public:
 
-    Worker *worker1;
-    Worker *worker2;
-
-     HttpServer(quint16 port, QObject* parent = 0);
+     HttpServer(int numOfWorkers,quint16 port, QObject* parent = 0);
 
      void incomingConnection(int socket);
 

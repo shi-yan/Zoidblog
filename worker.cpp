@@ -6,6 +6,8 @@
 #include "httprequest.h"
 #include "httpresponse.h"
 #include "pathtree.h"
+#include "incommingconnectionqueue.h"
+#include <QtCore/QCoreApplication>
 
 
 int onMessageBegin(http_parser *parser)
@@ -93,6 +95,14 @@ Worker::Worker(const QString _name)
    workerName=_name;
 }
 
+void Worker::newSocket(int socket)
+{
+    QTcpSocket* s = new QTcpSocket(this);
+    connect(s, SIGNAL(readyRead()), this    , SLOT(readClient()));
+    connect(s, SIGNAL(disconnected()), this, SLOT(discardClient()));
+    s->setSocketDescriptor(socket);
+}
+
 
 void Worker::readClient()
 {
@@ -178,6 +188,10 @@ void Worker::readClient()
            <<response.debugInfo<<"<br/>"
           <<thread()->currentThreadId();
 
+
+        qDebug()<<response.debugInfo;
+
+        qDebug()<<"before closeing";
         socket->close();
 
 
@@ -195,6 +209,21 @@ void Worker::discardClient()
 void Worker::run()
 {
     qDebug()<<workerName<<"'s thread id"<<thread()->currentThreadId();
+
+    forever {
+
+
+        int socket=InCommingConnectionQueue::getSingleton().getATask();
+
+        if(socket!=-1)
+        {
+            newSocket(socket);
+        }
+
+         QCoreApplication::processEvents();
+
+
+    }
 
     exec();
 }

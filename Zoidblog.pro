@@ -30,7 +30,8 @@ SOURCES += main.cpp \
     zoidblog.cpp \
     framework.cpp \
     httprequest.cpp \
-    httpresponse.cpp
+    httpresponse.cpp \
+    incommingconnectionqueue.cpp
 
 HEADERS += \
     httpserver.h \
@@ -47,4 +48,5 @@ HEADERS += \
     zoidblog.h \
     framework.h \
     httprequest.h \
-    httpresponse.h
+    httpresponse.h \
+    incommingconnectionqueue.h
