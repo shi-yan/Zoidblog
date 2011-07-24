@@ -26,7 +26,7 @@ public:
         return object;
     }
 
-    const int getMethodID()
+     int getMethodID()
     {
         return methodID;
     }

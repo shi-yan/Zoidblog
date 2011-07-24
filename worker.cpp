@@ -10,7 +10,7 @@
 #include <QtCore/QCoreApplication>
 
 
-int onMessageBegin(http_parser *parser)
+int onMessageBegin(http_parser *)
 {
     qDebug()<<"Parse Message Begin";
     return 0;
@@ -82,7 +82,7 @@ int onBody(http_parser *parser, const char *p,size_t len)
     return 0;
 }
 
-int onMessageComplete(http_parser *parser)
+int onMessageComplete(http_parser *)
 {
     qDebug()<<"Parse Message Complete";
     return 0;
@@ -146,7 +146,7 @@ void Worker::readClient()
         {
             qDebug()<<"upgrade";
         }
-        else if(nparsed!=inCommingContent.count())
+        else if(nparsed!=(size_t)inCommingContent.count())
         {
             qDebug()<<"nparsed:"<<nparsed<<"buffer size:"<<inCommingContent.count();
         }
@@ -170,7 +170,7 @@ void Worker::readClient()
         QString contentLengthString=request.getHeader().getHeaderInfo("Content-Length");
         if(!contentLengthString.isEmpty())
         {
-            int contentLength=contentLengthString.toInt();
+            //int contentLength=contentLengthString.toInt();
 
             QString contentTypeString=request.getHeader().getHeaderInfo("Content-Type");
 

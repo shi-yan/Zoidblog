@@ -11,7 +11,8 @@ HttpHeader::~HttpHeader()
 
 
 HttpHeader::HttpHeader(const HttpHeader &in)
-    :httpMethod(in.httpMethod),
+    :QObject(),
+      httpMethod(in.httpMethod),
       body(in.body),
       headerInfo(in.headerInfo),
       fragment(in.fragment),

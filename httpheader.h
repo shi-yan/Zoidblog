@@ -97,15 +97,9 @@ public:
 
     QString &getHeaderInfo(const QString & _headerField)
     {
-        if(headerInfo.contains(_headerField))
-        {
+
             return headerInfo[_headerField];
-        }
-        else
-        {
-            QString empty;
-            return empty;
-        }
+
     }
 
     void addHeaderInfo(const QString &_headerValue)

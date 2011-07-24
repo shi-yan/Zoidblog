@@ -24,7 +24,7 @@ void Zoidblog::registerHandlers()
     qDebug()<<"result of register handler:"<<result;
 }
 
-void Zoidblog::handlePathGet(HttpRequest &request,HttpResponse &response)
+void Zoidblog::handlePathGet(HttpRequest &,HttpResponse &response)
 {
  //  response.debugInfo+=request.getHeader().toString();
    //response.debugInfo+=QString("this is inside zoidblog!!! by thread:%1").arg((int)(thread()->currentThreadId()));
