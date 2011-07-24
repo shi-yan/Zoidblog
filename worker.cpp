@@ -157,8 +157,16 @@ void Worker::readClient()
             qDebug()<<parser.method;
         }
 
+        PathTreeNode::TaskHandlerType handlerType;
 
-        const TaskHandler *th=PathTree::getSingleton().getTaskHandlerByPath(request.getHeader().getPath());
+        if(parser.method==HTTP_GET)
+            handlerType=PathTreeNode::GET;
+        else if(parser.method==HTTP_POST)
+            handlerType=PathTreeNode::POST;
+        else
+            socket->close();
+
+        const TaskHandler *th=PathTree::getSingleton().getTaskHandlerByPath(request.getHeader().getPath(),handlerType);
 
         if(th )
         {
@@ -184,7 +192,8 @@ void Worker::readClient()
             "\r\n"
             "<h1>Nothing to see here</h1>\n"
             << QDateTime::currentDateTime().toString() << "\n"
-            <<"received:<br/>"<<workerName<<"<br/>\r\n"
+            <<"received:<br/>"<<workerName<<"<br/>\r\n"<<
+              request.getHeader().toString()<<"<br/>"
            <<response.debugInfo<<"<br/>"
           <<thread()->currentThreadId();
 

@@ -3,7 +3,8 @@
 PathTreeNode::PathTreeNode()
     :QObject(),
       pathName(),
-      taskHandler(),
+      getTaskHandler(),
+      postTaskHandler(),
       children()
 {
 }
@@ -11,28 +12,28 @@ PathTreeNode::PathTreeNode()
 PathTreeNode::PathTreeNode(const PathTreeNode &in)
     :QObject(),
       pathName(in.pathName),
-      taskHandler(in.taskHandler),
+      getTaskHandler(in.getTaskHandler),
+      postTaskHandler(in.postTaskHandler),
       children()
 {
     children=in.children;
 }
 
-PathTreeNode::PathTreeNode(const QString _pathName,QObject *object,const QString methodName)
+PathTreeNode::PathTreeNode(const QString _pathName)
     :QObject(),
       pathName(_pathName),
-      taskHandler(),
+      getTaskHandler(),
+      postTaskHandler(),
       children()
 {
-    if(object)
-    {
-        taskHandler.setHandler(object,methodName);
-    }
+
 }
 
 void PathTreeNode::operator=(const PathTreeNode &in)
 {
     pathName=in.pathName;
-    taskHandler=in.taskHandler;
+    getTaskHandler=in.getTaskHandler;
+    postTaskHandler=in.postTaskHandler;
     children=in.children;
 }
 
@@ -48,11 +49,21 @@ bool PathTreeNode::hasChild(const QString &childPathName)
     return children.contains(childPathName);
 }
 
-bool PathTreeNode::setTaskHandler(QObject *object,const QString methodName)
+bool PathTreeNode::setGetHandler(QObject *object,const QString methodName)
 {
-    if(taskHandler.isEmpty())
+    if(getTaskHandler.isEmpty())
     {
-        return taskHandler.setHandler(object,methodName);
+        return getTaskHandler.setHandler(object,methodName);
+    }
+    else
+        return false;
+}
+
+bool PathTreeNode::setPostHandler(QObject *object, const QString methodName)
+{
+    if(postTaskHandler.isEmpty())
+    {
+        return postTaskHandler.setHandler(object,methodName);
     }
     else
         return false;

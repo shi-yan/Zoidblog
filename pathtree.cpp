@@ -8,7 +8,7 @@ PathTree::PathTree(QObject *parent)
 {
 }
 
-bool PathTree::registerAPath(const QString &path,QObject *object,const QString &methodName)
+bool PathTree::registerAPath(const QString &path,QObject *object,const QString &methodName,enum PathTreeNode::TaskHandlerType type)
 {
   /*  qDebug()<<"Register a Handler:";
     qDebug()<<"Path:"<<path;
@@ -25,7 +25,10 @@ bool PathTree::registerAPath(const QString &path,QObject *object,const QString &
             return false;
         else if(path.count()==1)
         {
-            return root.setTaskHandler(object,methodName);
+            if(type==PathTreeNode::GET)
+                return root.setGetHandler(object,methodName);
+            else
+                return root.setPostHandler(object,methodName);
         }
         else
         {
@@ -54,19 +57,27 @@ bool PathTree::registerAPath(const QString &path,QObject *object,const QString &
                 }
             }
 
-            return currentPathTreeNode->setTaskHandler(object,methodName);
+            if(type==PathTreeNode::GET)
+                return currentPathTreeNode->setGetHandler(object,methodName);
+            else
+                return currentPathTreeNode->setPostHandler(object,methodName);
         }
     }
     else
         return false;
 }
 
-const TaskHandler * PathTree::getTaskHandlerByPath(const QString &path)
+const TaskHandler * PathTree::getTaskHandlerByPath(const QString &path,enum PathTreeNode::TaskHandlerType type)
 {
     if(!path.isNull() && !path.isEmpty() && path.at(0)=='/')
     {
         if(path.count()==1)
-            return root.getTaskHandler();
+        {
+            if(type==PathTreeNode::GET)
+                return root.getHandler();
+            else
+                return root.postHandler();
+        }
         else
         {
             int posBegin=1;
@@ -93,7 +104,10 @@ const TaskHandler * PathTree::getTaskHandlerByPath(const QString &path)
             }
 
 
-            return currentPathTreeNode->getTaskHandler();
+            if(type==PathTreeNode::GET)
+                return currentPathTreeNode->getHandler();
+            else
+                return currentPathTreeNode->postHandler();
         }
     }
     else

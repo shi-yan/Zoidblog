@@ -17,8 +17,7 @@ int main(int argc, char *argv[])
 
     QCoreApplication a(argc, argv);
 
-
-   HttpServer *daemon = new HttpServer(5,8080, &a);
+    HttpServer::getSingleton().start(3,8080);
 
     return a.exec();
 }

@@ -10,13 +10,25 @@
 
 class HttpServer : public QTcpServer
  {
-     int incommingCount;
      Q_OBJECT
- public:
 
-     HttpServer(int numOfWorkers,quint16 port, QObject* parent = 0);
+    int connectionCount;
 
-     void incomingConnection(int socket);
+    bool disabled;
+
+    HttpServer(QObject* parent = 0);
+
+    void incomingConnection(int socket);
+
+public:
+
+    static HttpServer &getSingleton()
+    {
+        static HttpServer obj;
+        return obj;
+    }
+
+    void start(int numOfWorkers,quint16 port);
 
      void pause()
      {
@@ -27,9 +39,6 @@ class HttpServer : public QTcpServer
      {
          disabled = false;
      }
-
- private:
-     bool disabled;
  };
 
 #endif // HTTPSERVER_H

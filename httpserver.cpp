@@ -3,12 +3,26 @@
 #include "worker.h"
 #include "incommingconnectionqueue.h"
 
-HttpServer::HttpServer(int numOfWorkers,quint16 port, QObject* parent )
-    : QTcpServer(parent), disabled(false),incommingCount(0)
+HttpServer::HttpServer(QObject* parent )
+    : QTcpServer(parent), disabled(false),connectionCount(0)
 {
-    qDebug()<<"before listening!";
+}
 
-    qDebug()<<"need to create"<<numOfWorkers<<"workers";
+void HttpServer::incomingConnection(int socket)
+{
+    if (disabled)
+        return;
+
+    InCommingConnectionQueue::getSingleton().insertATask(socket);
+
+    qDebug()<<"New Connection!"<<socket;
+
+    connectionCount++;
+}
+
+void HttpServer::start(int numOfWorkers,quint16 port)
+{
+    qDebug()<<"Need to create"<<numOfWorkers<<"workers";
 
     if(numOfWorkers<1)
         numOfWorkers=1;
@@ -23,19 +37,5 @@ HttpServer::HttpServer(int numOfWorkers,quint16 port, QObject* parent )
 
     listen(QHostAddress::Any, port);
 
-    qDebug()<<"listening! threadid"<<thread()->currentThreadId();
-
-    srand(12341234);
-}
-
-void HttpServer::incomingConnection(int socket)
-{
-    if (disabled)
-        return;
-
-    InCommingConnectionQueue::getSingleton().insertATask(socket);
-
-    qDebug()<<"New Connection!"<<socket;
-
-    incommingCount++;
+    qDebug()<<"Start listening! main ThreadId"<<thread()->currentThreadId();
 }

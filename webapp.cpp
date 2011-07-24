@@ -8,7 +8,7 @@ WebApp::WebApp(const QString &_pathSpace,QObject *parent )
 
 }
 
-bool WebApp::addGet(const QString &_path,const QString &handlerName)
+bool WebApp::addGetHandler(const QString &_path,const QString &handlerName)
 {
     QString path=_path;
 
@@ -18,6 +18,20 @@ bool WebApp::addGet(const QString &_path,const QString &handlerName)
     QString functionName=handlerName;
 
 
-    return PathTree::getSingleton().registerAPath(path,this,functionName.append("(HttpRequest&,HttpResponse&)"));
+    return PathTree::getSingleton().registerAPath(path,this,functionName.append("(HttpRequest&,HttpResponse&)"),PathTreeNode::GET);
 }
 
+
+bool WebApp::addPostHandler(const QString &_path,const QString &handlerName)
+{
+    QString path=_path;
+
+    if(!pathSpace.isNull() && !pathSpace.isEmpty())
+        path='/' + pathSpace + _path;
+
+    QString functionName=handlerName;
+
+
+    return PathTree::getSingleton().registerAPath(path,this,functionName.append("(HttpRequest&,HttpResponse&)"),PathTreeNode::POST);
+
+}

@@ -20,8 +20,8 @@ public:
         return obj;
     }
 
-    bool registerAPath(const QString &path,QObject *object,const QString &methodName);
-    const TaskHandler * getTaskHandlerByPath(const QString &path);
+    bool registerAPath(const QString &path,QObject *object,const QString &methodName,enum PathTreeNode::TaskHandlerType);
+    const TaskHandler * getTaskHandlerByPath(const QString &path,enum PathTreeNode::TaskHandlerType);
 };
 
 #endif // PATHTREE_H

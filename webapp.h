@@ -16,7 +16,8 @@ public:
 
     virtual void registerHandlers() = 0;
 
-    bool addGet(const QString &_path,const QString &handlerName);
+    bool addGetHandler(const QString &_path,const QString &handlerName);
+    bool addPostHandler(const QString &_path,const QString &handlerName);
 
     virtual ~WebApp(){}
 

@@ -15,8 +15,11 @@ public:
     void registerHandlers();
 
 public slots:
-    void handlePath(HttpRequest &,HttpResponse &);
-    void handleTest(HttpRequest &,HttpResponse &);
+    void handlePathGet(HttpRequest &,HttpResponse &);
+    void handleTestGet(HttpRequest &,HttpResponse &);
+
+    void handlePathPost(HttpRequest &,HttpResponse &);
+    void handleTestPost(HttpRequest &,HttpResponse &);
 };
 
 #endif // ZOIDBLOG_H

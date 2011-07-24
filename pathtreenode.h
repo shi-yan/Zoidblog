@@ -10,13 +10,21 @@ class PathTreeNode:public QObject
     Q_OBJECT
 
     QString pathName;
-    TaskHandler taskHandler;
+    TaskHandler getTaskHandler;
+    TaskHandler postTaskHandler;
     QMap<QString,PathTreeNode> children;
 
 public:
+
+    enum TaskHandlerType
+    {
+        GET,
+        POST
+    };
+
     PathTreeNode();
     PathTreeNode(const PathTreeNode &in);
-    PathTreeNode(const QString _pathName,QObject *object=0,const QString methodName="");
+    PathTreeNode(const QString _pathName);
     void operator=(const PathTreeNode &in);
 
 
@@ -28,11 +36,18 @@ public:
         return &children[childePathName];
     }
 
-    bool setTaskHandler(QObject *object,const QString methodName);
+    bool setGetHandler(QObject *object,const QString methodName);
 
-    const TaskHandler * getTaskHandler()
+    bool setPostHandler(QObject *object,const QString methodName);
+
+    const TaskHandler * getHandler()
     {
-        return &taskHandler;
+        return &getTaskHandler;
+    }
+
+    const TaskHandler * postHandler()
+    {
+        return &postTaskHandler;
     }
 
     QString & getPathName()
