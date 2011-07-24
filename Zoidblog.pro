@@ -4,9 +4,8 @@
 #
 #-------------------------------------------------
 
-QT       += core network sql xml
+QT       += core network sql xml gui
 
-QT       -= gui
 
 TARGET = Zoidblog
 CONFIG   += console

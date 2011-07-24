@@ -26,6 +26,11 @@ public:
 
     void operator<<(const QString &info);
 
+    QByteArray & getBuffer()
+    {
+        return buffer;
+    }
+
 
 };
 

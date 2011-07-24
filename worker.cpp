@@ -166,6 +166,187 @@ void Worker::readClient()
         else
             socket->close();
 
+
+        QString contentLengthString=request.getHeader().getHeaderInfo("Content-Length");
+        if(!contentLengthString.isEmpty())
+        {
+            int contentLength=contentLengthString.toInt();
+
+            QString contentTypeString=request.getHeader().getHeaderInfo("Content-Type");
+
+            if(!contentTypeString.isEmpty())
+            {
+                int i=0;
+                for(i=0;i<contentTypeString.count();++i)
+                {
+                    if(contentTypeString.at(i)==';')
+                        break;
+                }
+
+                QString contentType=contentTypeString.mid(0,i);
+
+                if(contentType=="multipart/form-data")
+                {
+                    qDebug()<<"found form data!";
+
+
+
+                    if(contentTypeString.mid(i+2,9)=="boundary=")
+                    {
+                        QString boundary=contentTypeString.mid(i+11,contentTypeString.count()-i-11);
+
+                        qDebug()<<"And the boundary is:"<<boundary;
+
+
+
+                        QByteArray body=request.getHeader().getBody();
+
+                        QMap<QString,QByteArray> formData;
+
+                        int linebegin=0;
+                        int lineend=0;
+
+                        bool success=false;
+
+                        while(body.at(lineend)!='\r' && body.at(lineend+1)!='\n')
+                        {
+                            ++lineend;
+                        }
+
+                        QString boundaryCheck= QByteArray(&body.data()[linebegin],lineend-linebegin);
+
+
+
+                        if(boundaryCheck=="--"+boundary)
+                        {
+                            lineend+=2;
+                            linebegin=lineend;
+                            while(lineend<body.count())
+                            {
+                                while(lineend<body.count()-1 && body.at(lineend)!='\r' && body.at(lineend+1)!='\n')
+                                {
+                                    ++lineend;
+                                }
+
+                                QString fieldCheck= QByteArray(&body.data()[linebegin],lineend-linebegin);
+
+                                if(!(fieldCheck.left(38)=="Content-Disposition: form-data; name=\""))
+                                {
+                                    break;
+                                }
+
+                                int namelength=38;
+
+                                while(fieldCheck.at(namelength)!='\"' && namelength<fieldCheck.count())
+                                {
+                                    ++namelength;
+                                }
+
+                                QString fieldName=fieldCheck.mid(38,namelength-38);
+
+                                //qDebug()<<"Field name:"<<fieldName;
+
+
+                                lineend+=2;
+                                linebegin=lineend;
+
+                                if(lineend>=body.count())
+                                    break;
+
+                                while(lineend<body.count()-1 && body.at(lineend)!='\r' && body.at(lineend+1)!='\n')
+                                {
+                                    ++lineend;
+                                }
+
+                                lineend+=2;
+                                linebegin=lineend;
+
+                                QByteArray value;
+
+                                while(lineend<body.count())
+                                {
+                                    while(lineend<body.count()-1 && body.at(lineend)!='\r' && body.at(lineend+1)!='\n')
+                                    {
+                                        ++lineend;
+                                    }
+
+                                    QByteArray thisline(&body.data()[linebegin],lineend-linebegin);
+
+                                    QString aValueLine=thisline;
+
+                                  //  qDebug()<<aValueLine;
+
+                                    if(aValueLine.left(2+boundary.count())=="--"+boundary)
+                                    {
+
+                                     //   qDebug()<<"Value:"<<value;
+
+                                        formData[fieldName]=value;
+
+                                        if(aValueLine.right(2)=="--")
+                                        {
+                                                success=true;
+
+                                        }
+
+
+                                        lineend+=2;
+                                        linebegin=lineend;
+
+
+
+                                        break;
+                                    }
+
+                                    value.append(thisline);
+                                    value.append('\r');
+                                    value.append('\n');
+
+                                    lineend+=2;
+                                    linebegin=lineend;
+
+
+                                }
+                        }
+
+
+                    }
+
+
+                        if(success)
+                        {
+                            qDebug()<<"form data retrieved successfully!";
+request.setFormData(formData);
+                         //   qDebug()<<formData;
+                        }
+
+                    }
+                }
+            }
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         const TaskHandler *th=PathTree::getSingleton().getTaskHandlerByPath(request.getHeader().getPath(),handlerType);
 
         if(th )
@@ -185,20 +366,23 @@ void Worker::readClient()
 
 
 
-        QTextStream os(socket);
+        QDataStream os(socket);
 
-        os << "HTTP/1.0 200 Ok\r\n"
+
+    /*   os << "HTTP/1.0 200 Ok\r\n"
             "Content-Type: text/html; charset=\"utf-8\"\r\n"
-            "\r\n"
-            "<h1>Nothing to see here</h1>\n"
-            << QDateTime::currentDateTime().toString() << "\n"
+            "\r\n";
+      */ //     "<h1>Nothing to see here</h1>\n";
+     /*       << QDateTime::currentDateTime().toString() << "\n"
             <<"received:<br/>"<<workerName<<"<br/>\r\n"<<
               request.getHeader().toString()<<"<br/>"
            <<response.debugInfo<<"<br/>"
           <<thread()->currentThreadId();
 
 
-        qDebug()<<response.debugInfo;
+        qDebug()<<response.debugInfo;*/
+
+        os<<response.getBuffer();
 
         qDebug()<<"before closeing";
         socket->close();
