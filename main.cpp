@@ -1,4 +1,4 @@
-#include <QtCore/QCoreApplication>
+#include <QtGui/QApplication>
 #include "httpserver.h"
 #include "zoidblog.h"
 #include "taskhandler.h"
@@ -15,7 +15,7 @@ int main(int argc, char *argv[])
     Zoidblog blog;
     blog.registerHandlers();
 
-    QCoreApplication a(argc, argv);
+   QApplication a(argc, argv);
 
     HttpServer::getSingleton().start(3,8080);
 

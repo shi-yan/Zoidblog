@@ -17,7 +17,7 @@ void Zoidblog::registerHandlers()
 {
     bool result=addGetHandler("/path","handlePathGet");
 
-    result |= addGetHandler("/test.png","handleTestGet");
+    result |= addGetHandler("/test","handleTestGet");
 
     result |= addPostHandler("/path","handlePathPost");
 
@@ -43,7 +43,7 @@ void Zoidblog::handlePathGet(HttpRequest &,HttpResponse &response)
 void Zoidblog::handleTestGet(HttpRequest &request,HttpResponse &response)
 {
     qDebug()<<"inside test!!!!!!!!!!!!!"<<request.debugInfo<<response.debugInfo;
-
+/*
     QImage test("/home/shi/Desktop/Screenshot-6.png");
     QFile testpng("/home/shi/Desktop/Screenshot-6.png");
     testpng.open(QIODevice::ReadOnly);
@@ -53,8 +53,52 @@ void Zoidblog::handleTestGet(HttpRequest &request,HttpResponse &response)
 
 
     testpng.close();
+*/
 
-    response.getBuffer().append(imagebuffer);
+
+   /* FILE *file;
+    char *buffer;
+
+    unsigned long fileLen;
+
+    file=fopen("/home/shi/Desktop/Screenshot-6.png","rb");
+
+    if(!file)
+    {
+        qDebug()<<"unable to open file.";
+    }
+
+    fseek(file,0,SEEK_END);
+    fileLen=ftell(file);
+    fseek(file,0,SEEK_SET);
+
+    buffer=(char *)malloc(fileLen+1);
+
+    if(!buffer)
+    {
+        qDebug()<<"Memory error!";
+        fclose(file);
+    }
+
+    fread(buffer,fileLen,1,file);
+
+    fclose(file);
+*/
+
+  /*  QImage aaa("/home/shi/Desktop/Screenshot-6.png");
+
+    aaa.save(os,"png");
+
+
+
+    QByteArray qba(buffer,fileLen+1);
+
+
+       free(buffer);
+
+
+
+    response.getBuffer().append(qba);*/
 }
 
 void Zoidblog::handlePathPost(HttpRequest &request,HttpResponse &response)
