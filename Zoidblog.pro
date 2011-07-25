@@ -30,7 +30,9 @@ SOURCES += main.cpp \
     framework.cpp \
     httprequest.cpp \
     httpresponse.cpp \
-    incommingconnectionqueue.cpp
+    incommingconnectionqueue.cpp \
+    filememcache.cpp \
+    filememcachedata.cpp
 
 HEADERS += \
     httpserver.h \
@@ -48,4 +50,6 @@ HEADERS += \
     framework.h \
     httprequest.h \
     httpresponse.h \
-    incommingconnectionqueue.h
+    incommingconnectionqueue.h \
+    filememcache.h \
+    filememcachedata.h

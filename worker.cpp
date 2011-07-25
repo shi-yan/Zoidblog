@@ -168,103 +168,104 @@ void Worker::readClient()
         else
             socket->close();
 
-
-        QString contentLengthString=request.getHeader().getHeaderInfo("Content-Length");
-        if(!contentLengthString.isEmpty())
+        if(request.getHeader().getPath().left(6)=="/file/")
         {
-            //int contentLength=contentLengthString.toInt();
+            FILE *file;
+            char *buffer;
 
-            QString contentTypeString=request.getHeader().getHeaderInfo("Content-Type");
+            unsigned long fileLen;
 
-            if(!contentTypeString.isEmpty())
+            file=fopen((QString("file/")+request.getHeader().getPath().right(request.getHeader().getPath().count()-6)).toStdString().c_str(),"rb");
+
+            if(!file)
             {
-                int i=0;
-                for(i=0;i<contentTypeString.count();++i)
+                qDebug()<<"unable to open file.";
+                socket->close();
+
+                return;
+            }
+
+            fseek(file,0,SEEK_END);
+            fileLen=ftell(file);
+            fseek(file,0,SEEK_SET);
+
+            buffer=(char *)malloc(fileLen+1);
+
+            if(!buffer)
+            {
+                qDebug()<<"Memory error!";
+                fclose(file);
+                socket->close();
+                return;
+            }
+
+            fread(buffer,fileLen,1,file);
+
+            fclose(file);
+
+            QDataStream os(socket);
+            os.writeRawData(buffer,fileLen+1);
+
+            free(buffer);
+
+            socket->close();
+
+
+        }
+        else
+        {
+            QString contentLengthString=request.getHeader().getHeaderInfo("Content-Length");
+            if(!contentLengthString.isEmpty())
+            {
+                //int contentLength=contentLengthString.toInt();
+
+                QString contentTypeString=request.getHeader().getHeaderInfo("Content-Type");
+
+                if(!contentTypeString.isEmpty())
                 {
-                    if(contentTypeString.at(i)==';')
-                        break;
-                }
-
-                QString contentType=contentTypeString.mid(0,i);
-
-                if(contentType=="multipart/form-data")
-                {
-                    qDebug()<<"found form data!";
-
-
-
-                    if(contentTypeString.mid(i+2,9)=="boundary=")
+                    int i=0;
+                    for(i=0;i<contentTypeString.count();++i)
                     {
-                        QString boundary=contentTypeString.mid(i+11,contentTypeString.count()-i-11);
+                        if(contentTypeString.at(i)==';')
+                            break;
+                    }
 
-                        qDebug()<<"And the boundary is:"<<boundary;
+                    QString contentType=contentTypeString.mid(0,i);
 
+                    if(contentType=="multipart/form-data")
+                    {
+                        qDebug()<<"found form data!";
 
-
-                        QByteArray body=request.getHeader().getBody();
-
-                        QMap<QString,QByteArray> formData;
-
-                        int linebegin=0;
-                        int lineend=0;
-
-                        bool success=false;
-
-                        while(body.at(lineend)!='\r' && body.at(lineend+1)!='\n')
+                        if(contentTypeString.mid(i+2,9)=="boundary=")
                         {
-                            ++lineend;
-                        }
+                            QString boundary=contentTypeString.mid(i+11,contentTypeString.count()-i-11);
 
-                        QString boundaryCheck= QByteArray(&body.data()[linebegin],lineend-linebegin);
-
+                            qDebug()<<"And the boundary is:"<<boundary;
 
 
-                        if(boundaryCheck=="--"+boundary)
-                        {
-                            lineend+=2;
-                            linebegin=lineend;
-                            while(lineend<body.count())
+
+                            QByteArray body=request.getHeader().getBody();
+
+                            QMap<QString,QByteArray> formData;
+
+                            int linebegin=0;
+                            int lineend=0;
+
+                            bool success=false;
+
+                            while(body.at(lineend)!='\r' && body.at(lineend+1)!='\n')
                             {
-                                while(lineend<body.count()-1 && body.at(lineend)!='\r' && body.at(lineend+1)!='\n')
-                                {
-                                    ++lineend;
-                                }
+                                ++lineend;
+                            }
 
-                                QString fieldCheck= QByteArray(&body.data()[linebegin],lineend-linebegin);
-
-                                if(!(fieldCheck.left(38)=="Content-Disposition: form-data; name=\""))
-                                {
-                                    break;
-                                }
-
-                                int namelength=38;
-
-                                while(fieldCheck.at(namelength)!='\"' && namelength<fieldCheck.count())
-                                {
-                                    ++namelength;
-                                }
-
-                                QString fieldName=fieldCheck.mid(38,namelength-38);
-
-                                //qDebug()<<"Field name:"<<fieldName;
+                            QString boundaryCheck= QByteArray(&body.data()[linebegin],lineend-linebegin);
 
 
+
+                            if(boundaryCheck=="--"+boundary)
+                            {
                                 lineend+=2;
                                 linebegin=lineend;
-
-                                if(lineend>=body.count())
-                                    break;
-
-                                while(lineend<body.count()-1 && body.at(lineend)!='\r' && body.at(lineend+1)!='\n')
-                                {
-                                    ++lineend;
-                                }
-
-                                lineend+=2;
-                                linebegin=lineend;
-
-                                QByteArray value;
-
                                 while(lineend<body.count())
                                 {
                                     while(lineend<body.count()-1 && body.at(lineend)!='\r' && body.at(lineend+1)!='\n')
@@ -272,179 +273,150 @@ void Worker::readClient()
                                         ++lineend;
                                     }
 
-                                    QByteArray thisline(&body.data()[linebegin],lineend-linebegin);
+                                    QString fieldCheck= QByteArray(&body.data()[linebegin],lineend-linebegin);
 
-                                    QString aValueLine=thisline;
-
-                                  //  qDebug()<<aValueLine;
-
-                                    if(aValueLine.left(2+boundary.count())=="--"+boundary)
+                                    if(!(fieldCheck.left(38)=="Content-Disposition: form-data; name=\""))
                                     {
-
-                                     //   qDebug()<<"Value:"<<value;
-
-                                        formData[fieldName]=value;
-
-                                        if(aValueLine.right(2)=="--")
-                                        {
-                                                success=true;
-
-                                        }
-
-
-                                        lineend+=2;
-                                        linebegin=lineend;
-
-
-
                                         break;
                                     }
 
-                                    value.append(thisline);
-                                    value.append('\r');
-                                    value.append('\n');
+                                    int namelength=38;
+
+                                    while(fieldCheck.at(namelength)!='\"' && namelength<fieldCheck.count())
+                                    {
+                                        ++namelength;
+                                    }
+
+                                    QString fieldName=fieldCheck.mid(38,namelength-38);
+
+                                    //qDebug()<<"Field name:"<<fieldName;
+
 
                                     lineend+=2;
                                     linebegin=lineend;
 
+                                    if(lineend>=body.count())
+                                        break;
 
+                                    while(lineend<body.count()-1 && body.at(lineend)!='\r' && body.at(lineend+1)!='\n')
+                                    {
+                                        ++lineend;
+                                    }
+
+                                    lineend+=2;
+                                    linebegin=lineend;
+
+                                    QByteArray value;
+
+                                    while(lineend<body.count())
+                                    {
+                                        while(lineend<body.count()-1 && body.at(lineend)!='\r' && body.at(lineend+1)!='\n')
+                                        {
+                                            ++lineend;
+                                        }
+
+                                        QByteArray thisline(&body.data()[linebegin],lineend-linebegin);
+
+                                        QString aValueLine=thisline;
+
+                                      //  qDebug()<<aValueLine;
+
+                                        if(aValueLine.left(2+boundary.count())=="--"+boundary)
+                                        {
+
+                                         //   qDebug()<<"Value:"<<value;
+
+                                            formData[fieldName]=value;
+
+                                            if(aValueLine.right(2)=="--")
+                                            {
+                                                    success=true;
+                                            }
+
+                                            lineend+=2;
+                                            linebegin=lineend;
+
+                                            break;
+                                        }
+
+                                        value.append(thisline);
+                                        value.append('\r');
+                                        value.append('\n');
+
+                                        lineend+=2;
+                                        linebegin=lineend;
+                                    }
                                 }
+                            }
+
+                            if(success)
+                            {
+                                qDebug()<<"form data retrieved successfully!";
+                                request.setFormData(formData);
+
+                                //   qDebug()<<formData;
+                            }
                         }
-
-
-                    }
-
-
-                        if(success)
-                        {
-                            qDebug()<<"form data retrieved successfully!";
-request.setFormData(formData);
-                         //   qDebug()<<formData;
-                        }
-
                     }
                 }
             }
-        }
 
+            const TaskHandler *th=PathTree::getSingleton().getTaskHandlerByPath(request.getHeader().getPath(),handlerType);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        const TaskHandler *th=PathTree::getSingleton().getTaskHandlerByPath(request.getHeader().getPath(),handlerType);
-
-        if(th )
-        {
-            if(!th->isEmpty())
+            if(th )
             {
-                if(th->invoke(request,response))
-                    qDebug()<<"invoke successful!";
+                if(!th->isEmpty())
+                {
+                    if(th->invoke(request,response))
+                        qDebug()<<"invoke successful!";
+                    else
+                        qDebug()<<"invoke unsuccessful!";
+                }
                 else
-                    qDebug()<<"invoke unsuccessful!";
+                    qDebug()<<"no task handler!";
             }
             else
-                qDebug()<<"no task handler!";
-        }
-        else
-            qDebug()<<"empty task handler!";
+                qDebug()<<"empty task handler!";
 
+            QDataStream os(socket);
 
-
-        QDataStream os(socket);
-
-
-    /*   os << "HTTP/1.0 200 Ok\r\n"
+            /*   os << "HTTP/1.0 200 Ok\r\n"
             "Content-Type: text/html; charset=\"utf-8\"\r\n"
-            "\r\n";
-      */ //     "<h1>Nothing to see here</h1>\n";
-     /*       << QDateTime::currentDateTime().toString() << "\n"
+            "\r\n";*/
+            //     "<h1>Nothing to see here</h1>\n";
+
+            /*       << QDateTime::currentDateTime().toString() << "\n"
             <<"received:<br/>"<<workerName<<"<br/>\r\n"<<
               request.getHeader().toString()<<"<br/>"
            <<response.debugInfo<<"<br/>"
           <<thread()->currentThreadId();
+            qDebug()<<response.debugInfo;*/
+            // os<<response.getBuffer();
+            //    QByteArray qba(buffer,fileLen+1);
+            //   os.writeRawData(buffer,fileLen+1);
 
 
-        qDebug()<<response.debugInfo;*/
+            QImage aaa(400,200,QImage::Format_Mono);
 
-       // os<<response.getBuffer();
 
-        FILE *file;
-        char *buffer;
+            aaa.fill(0xF);
 
-        unsigned long fileLen;
+            QPainter painter(&aaa);
 
-        file=fopen("/home/shi/Desktop/Screenshot-6.png","rb");
 
-        if(!file)
-        {
-            qDebug()<<"unable to open file.";
+            painter.setFont(QFont("Bengali",30));
+
+            painter.drawText(QRectF(10,10,300,180),"DAFafklfa;");
+
+
+            aaa.save(socket,"png");
+
+
+
+            qDebug()<<"before closeing";
+            socket->close();
         }
-
-        fseek(file,0,SEEK_END);
-        fileLen=ftell(file);
-        fseek(file,0,SEEK_SET);
-
-        buffer=(char *)malloc(fileLen+1);
-
-        if(!buffer)
-        {
-            qDebug()<<"Memory error!";
-            fclose(file);
-        }
-
-        fread(buffer,fileLen,1,file);
-
-        fclose(file);
-
-
-
-
-    //    QByteArray qba(buffer,fileLen+1);
-
-
-     //   os.writeRawData(buffer,fileLen+1);
-
-       QImage aaa(400,200,QImage::Format_Mono);
-
-       aaa.fill(0xF);
-       QPainter painter(&aaa);
-
-       painter.setFont(QFont("Bengali",30));
-        painter.drawText(QRectF(10,10,300,180),"DAFafklfa;");
-
-        aaa.save(socket,"png");
-
-
-        qDebug()<<"before closeing";
-        socket->close();
-
-
-
-
-
-
-
-
     }
-
 }
 
 void Worker::discardClient()
