@@ -159,6 +159,8 @@ void Worker::readClient()
             qDebug()<<parser.method;
         }
 
+        request.debugInfo=inCommingContent;
+
         PathTreeNode::TaskHandlerType handlerType;
 
         if(parser.method==HTTP_GET)
@@ -204,7 +206,7 @@ void Worker::readClient()
             fclose(file);
 
             QDataStream os(socket);
-            os.writeRawData(buffer,fileLen+1);
+            os.writeRawData(buffer,fileLen);
 
             free(buffer);
 
@@ -358,6 +360,12 @@ void Worker::readClient()
                             }
                         }
                     }
+                    else if(contentTypeString=="application/octet-stream")
+                    {
+                       // while(1){};
+                        qDebug()<<"uploading things!!";
+                    //    return;
+                    }
                 }
             }
 
@@ -378,43 +386,14 @@ void Worker::readClient()
             else
                 qDebug()<<"empty task handler!";
 
-            QDataStream os(socket);
+           // QDataStream os(socket);
 
-            /*   os << "HTTP/1.0 200 Ok\r\n"
-            "Content-Type: text/html; charset=\"utf-8\"\r\n"
-            "\r\n";*/
-            //     "<h1>Nothing to see here</h1>\n";
+           QTextStream os(socket);
 
-            /*       << QDateTime::currentDateTime().toString() << "\n"
-            <<"received:<br/>"<<workerName<<"<br/>\r\n"<<
-              request.getHeader().toString()<<"<br/>"
-           <<response.debugInfo<<"<br/>"
-          <<thread()->currentThreadId();
-            qDebug()<<response.debugInfo;*/
-            // os<<response.getBuffer();
-            //    QByteArray qba(buffer,fileLen+1);
-            //   os.writeRawData(buffer,fileLen+1);
-
-
-            QImage aaa(400,200,QImage::Format_Mono);
-
-
-            aaa.fill(0xF);
-
-            QPainter painter(&aaa);
-
-
-            painter.setFont(QFont("Bengali",30));
-
-            painter.drawText(QRectF(10,10,300,180),"DAFafklfa;");
-
-
-            aaa.save(socket,"png");
-
-
+                    os<<"{success:true}";
 
             qDebug()<<"before closeing";
-            socket->close();
+           socket->close();
         }
     }
 }

@@ -4,6 +4,7 @@
 #include <QDebug>
 #include <QImage>
 #include <QBuffer>
+#include <cstdio>
 
 Zoidblog::Zoidblog():WebApp("")
 {
@@ -20,6 +21,10 @@ void Zoidblog::registerHandlers()
     result |= addGetHandler("/test","handleTestGet");
 
     result |= addPostHandler("/path","handlePathPost");
+
+    result |=addGetHandler("/imageupload","handleImageUploadGet");
+
+    result |= addPostHandler("/imageupload","handleImageUploadPost");
 
     qDebug()<<"result of register handler:"<<result;
 }
@@ -127,4 +132,28 @@ response.getBuffer().clear();
 void Zoidblog::handleTestPost(HttpRequest &,HttpResponse &)
 {
 
+}
+
+void Zoidblog::handleImageUploadGet(HttpRequest &,HttpResponse &)
+{
+    qDebug()<<"inside image upload get";
+}
+
+void Zoidblog::handleImageUploadPost(HttpRequest &request,HttpResponse &)
+{
+    qDebug()<<"inside image upload post";
+    qDebug()<<"=======================================";
+
+    qDebug()<<request.debugInfo;
+
+    qDebug()<<"=======================================";
+
+    qDebug()<<request.getHeader().getBody();
+
+    FILE *fp=fopen("uploaded.pdf","wb");
+
+    fwrite(request.getHeader().getBody().data(),request.getHeader().getBody().count(),1,fp);
+
+    fclose(fp);
+    qDebug()<<"========================================";
 }

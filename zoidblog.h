@@ -20,6 +20,9 @@ public slots:
 
     void handlePathPost(HttpRequest &,HttpResponse &);
     void handleTestPost(HttpRequest &,HttpResponse &);
+
+    void handleImageUploadGet(HttpRequest &,HttpResponse &);
+    void handleImageUploadPost(HttpRequest &,HttpResponse &);
 };
 
 #endif // ZOIDBLOG_H

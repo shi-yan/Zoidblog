@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <QThread>
 #include <QVector>
+#include <QtCore/QCoreApplication>
 
  SessionManager::SessionManager(QObject *parent):QObject(parent),checkerCount(0),needToAdd(false),maximumSessionSize(100),expirationTimeInSeconds(3600)
 {
@@ -29,7 +30,9 @@ const QString SessionManager::addSession(const QVariant userData)
         while(checkerCount>0)
         {
             sessionMutex.unlock();
-            //QThread::msleep(100);
+
+
+            QCoreApplication::processEvents();
             sessionMutex.lock();
         }
 
@@ -100,6 +103,7 @@ const QVariant SessionManager::checkSession(const QString &_key)
     {
         sessionMutex.unlock();
 
+        QCoreApplication::processEvents();
 
         sessionMutex.lock();
     }
