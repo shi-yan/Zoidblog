@@ -115,7 +115,7 @@ void Worker::readClient()
     // server looks if it was a get request and sends a very simple HTML
     // document back.
     QTcpSocket* socket = (QTcpSocket*)sender();
-    if (socket->canReadLine())
+    if (socket->bytesAvailable())
     {
         HttpRequest request;
         HttpResponse response;
@@ -168,7 +168,15 @@ void Worker::readClient()
         else if(parser.method==HTTP_POST)
             handlerType=PathTreeNode::POST;
         else
+        {
+
+            qDebug()<<"not get and post"<<socket->atEnd()<<socket->bytesAvailable()<<socket->ConnectedState;
+
+            qDebug()<<inCommingContent;
             socket->close();
+            return;
+            //
+        }
 
         if(request.getHeader().getPath().left(6)=="/file/")
         {
@@ -393,7 +401,7 @@ void Worker::readClient()
                     os<<"{success:true}";
 
             qDebug()<<"before closeing";
-           socket->close();
+          // socket->close();
         }
     }
 }
