@@ -47,7 +47,7 @@ void Zoidblog::handlePathGet(HttpRequest &,HttpResponse &response)
 
 void Zoidblog::handleTestGet(HttpRequest &request,HttpResponse &response)
 {
-    qDebug()<<"inside test!!!!!!!!!!!!!"<<request.debugInfo<<response.debugInfo;
+    //qDebug()<<"inside test!!!!!!!!!!!!!"<<request.debugInfo<<response.debugInfo;
 /*
     QImage test("/home/shi/Desktop/Screenshot-6.png");
     QFile testpng("/home/shi/Desktop/Screenshot-6.png");

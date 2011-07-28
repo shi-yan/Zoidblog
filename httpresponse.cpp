@@ -1,6 +1,6 @@
 #include "httpresponse.h"
 
-HttpResponse::HttpResponse():QObject()
+HttpResponse::HttpResponse(TcpSocket *_socket):QObject(),socket(_socket)
 {
 }
 

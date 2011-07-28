@@ -56,6 +56,7 @@ public:
         HTTP_SUBSCRIBE,
         HTTP_UNSUBSCRIBE
     };
+
     HttpHeader();
 
     HttpHeader(const HttpHeader &in);

@@ -4,20 +4,26 @@
 #include <QObject>
 #include "httpheader.h"
 
+class TcpSocket;
+
 class HttpRequest:public QObject
 {
     Q_OBJECT
 
     HttpHeader header;
-
+    QByteArray rawData;
     QMap<QString,QByteArray> formData;
-
     bool hasSetFormData;
+
+    unsigned int totalBytes;
+    unsigned int bytesHaveRead;
+
+    QString rawHeader;
+
+    TcpSocket *socket;
 public:
 
-    QString debugInfo;
-
-    HttpRequest();
+    HttpRequest(TcpSocket *_socket=0);
     HttpRequest(const HttpRequest &in);
     void operator=(const HttpRequest &in);
 
@@ -37,12 +43,27 @@ public:
         return formData[fieldName];
     }
 
+    QByteArray & getRawData()
+    {
+        return rawData;
+    }
+
     bool hasFormData()
     {
         return hasSetFormData;
     }
 
     ~HttpRequest();
+
+    void appendData(const char*,unsigned int);
+    void appendData(QByteArray &ba);
+
+    void setRawHeader(const QString &_rh);
+
+    QString & getRawHeader()
+    {
+        return rawHeader;
+    }
 };
 
 #endif // HTTPREQUEST_H

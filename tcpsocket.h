@@ -3,20 +3,17 @@
 
 #include <QTcpSocket>
 #include <QByteArray>
-#include "httpheader.h"
+#include "httprequest.h"
+#include "httpresponse.h"
 
 class TcpSocket:public QTcpSocket
 {
     Q_OBJECT
 
     bool isNew;
-    unsigned int totalBytes;
-    unsigned int bytesHaveRead;
 
-    QByteArray dataBuffer;
-    HttpHeader header;
-
-    QString rawHeader;
+    HttpRequest request;
+    HttpResponse response;
 
 public:
     TcpSocket(QObject *parent=0);
@@ -24,63 +21,23 @@ public:
     void operator=(const TcpSocket &in);
     ~TcpSocket();
 
-    void setRawHeader(const QString &in)
-    {
-        rawHeader=in;
-    }
+    void setRawHeader(const QString &in);
+    QString & getRawHeader();
 
-    QString & getRawHeader()
-    {
-        rawHeader;
-    }
+    unsigned int getTotalBytes();
+    unsigned int getBytesHaveRead();
+    HttpHeader & getHeader();
+    void setHttpHeader(HttpHeader &_header);
+    bool isEof();
+    void notNew();
 
-    unsigned int getTotalBytes()
-    {
-        return totalBytes;
-    }
-
-    unsigned int getBytesHaveRead()
-    {
-        return bytesHaveRead;
-    }
-
-    HttpHeader & getHeader()
-    {
-        return header;
-    }
-
-    void setHttpHeader(HttpHeader &_header)
-    {
-        header=_header;
-    }
-
-    bool isEof()
-    {
-        return (isNew==false) && (totalBytes<=bytesHaveRead);
-    }
-
-    void notNew()
-    {
-        isNew=false;
-    }
-
-    bool isNewSocket()
-    {
-        return isNew;
-    }
-
-    void setTotalBytes(unsigned int _totalBytes)
-    {
-        totalBytes=_totalBytes;
-    }
+    bool isNewSocket();
+    void setTotalBytes(unsigned int _totalBytes);
 
     void appendData(const char* buffer,unsigned int size);
     void appendData(const QByteArray &buffer);
 
-    QByteArray &getBuffer()
-    {
-        return dataBuffer;
-    }
+    QByteArray &getBuffer();
 
 
 };

@@ -1,6 +1,6 @@
 #include "tcpsocket.h"
 
-TcpSocket::TcpSocket(QObject *parent):QTcpSocket(parent),totalBytes(0),bytesHaveRead(0),dataBuffer(),header(),rawHeader(),isNew(true)
+TcpSocket::TcpSocket(QObject *parent):QTcpSocket(parent),isNew(true),request(this),response(this)
 {
 }
 
@@ -26,12 +26,65 @@ TcpSocket::~TcpSocket()
 
 void TcpSocket::appendData(const char* buffer,unsigned int size)
 {
-    dataBuffer.append(buffer,size);
-    bytesHaveRead+=size;
+    request.appendData(buffer,size);
 }
 
 void TcpSocket::appendData(const QByteArray &buffer)
 {
-    dataBuffer.append(buffer);
-    bytesHaveRead+=buffer.count();
+    request.appendData(buffer);
+}
+
+void TcpSocket::setRawHeader(const QString &in)
+{
+    request.setRawHeader(in);
+}
+
+QString & TcpSocket::getRawHeader()
+{
+    rawHeader;
+}
+
+unsigned int TcpSocket::getTotalBytes()
+{
+    return totalBytes;
+}
+
+unsigned int TcpSocket::getBytesHaveRead()
+{
+    return bytesHaveRead;
+}
+
+HttpHeader & TcpSocket::getHeader()
+{
+    return header;
+}
+
+void TcpSocket::setHttpHeader(HttpHeader &_header)
+{
+    header=_header;
+}
+
+bool TcpSocket::isEof()
+{
+    return (isNew==false) && (totalBytes<=bytesHaveRead);
+}
+
+void TcpSocket::notNew()
+{
+    isNew=false;
+}
+
+bool TcpSocket::isNewSocket()
+{
+    return isNew;
+}
+
+void TcpSocket::setTotalBytes(unsigned int _totalBytes)
+{
+    totalBytes=_totalBytes;
+}
+
+QByteArray &TcpSocket::getBuffer()
+{
+    return dataBuffer;
 }

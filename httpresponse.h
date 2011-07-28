@@ -5,6 +5,8 @@
 #include <QTcpSocket>
 #include <QTextStream>
 
+class TcpSocket;
+
 class HttpResponse:public QObject
 {
     Q_OBJECT
@@ -13,12 +15,12 @@ class HttpResponse:public QObject
 
     QByteArray buffer;
 
-
+    TcpSocket *socket;
 
 public:
 
     QString debugInfo;
-    HttpResponse();
+    HttpResponse(TcpSocket *_socket=0);
     HttpResponse(const HttpResponse &in);
     void operator=(const HttpResponse &in);
     ~HttpResponse();
