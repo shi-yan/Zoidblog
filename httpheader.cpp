@@ -13,7 +13,7 @@ HttpHeader::~HttpHeader()
 HttpHeader::HttpHeader(const HttpHeader &in)
     :QObject(),
       httpMethod(in.httpMethod),
-      body(in.body),
+      //body(in.body),
       headerInfo(in.headerInfo),
       fragment(in.fragment),
       queryString(in.queryString),
@@ -27,7 +27,7 @@ HttpHeader::HttpHeader(const HttpHeader &in)
 
 void HttpHeader::operator=(const HttpHeader &in)
 {
-    body=in.body;
+  //  body=in.body;
     headerInfo=in.headerInfo;
     fragment=in.fragment;
     queryString=in.queryString;

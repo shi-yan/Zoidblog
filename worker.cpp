@@ -1,6 +1,6 @@
 #include "worker.h"
 #include <QDebug>
-#include <QTcpSocket>
+#include "tcpsocket.h"
 #include <QDateTime>
 #include "httpheader.h"
 #include "httprequest.h"
@@ -14,16 +14,16 @@
 
 int onMessageBegin(http_parser *)
 {
-    qDebug()<<"Parse Message Begin";
+   // qDebug()<<"Parse Message Begin";
     return 0;
 }
 
 int onPath(http_parser *parser, const char *p,size_t len)
 {
     QByteArray buffer(p,len);
-    //qDebug()<<"onPath:"<<QString(buffer);
+  //  qDebug()<<"onPath:"<<QString(buffer);
 
-    ((HttpHeader*)parser->data)->setPath(QString(buffer));
+    ((TcpSocket*)parser->data)->getHeader().setPath(QString(buffer));
 
     return 0;
 }
@@ -32,15 +32,15 @@ int onQueryString(http_parser *parser, const char *p,size_t len)
 {
     QByteArray buffer(p,len);
    // qDebug()<<"onQueryString:"<<QString(buffer);
-    ((HttpHeader*)parser->data)->setQueryString(QString(buffer));
+    ((TcpSocket*)parser->data)->getHeader().setQueryString(QString(buffer));
     return 0;
 }
 
 int onUrl(http_parser *parser, const char *p,size_t len)
 {
     QByteArray buffer(p,len);
-    //qDebug()<<"onUrl:"<<QString(buffer);
-    ((HttpHeader*)parser->data)->setUrl(QString(buffer));
+   // qDebug()<<"onUrl:"<<QString(buffer);
+    ((TcpSocket*)parser->data)->getHeader().setUrl(QString(buffer));
     return 0;
 }
 
@@ -49,7 +49,7 @@ int onFragment(http_parser *parser, const char *p,size_t len)
     QByteArray buffer(p,len);
   //  qDebug()<<"onFragment:"<<QString(buffer);
 
-    ((HttpHeader*)parser->data)->setFragment(QString(buffer));
+    ((TcpSocket*)parser->data)->getHeader().setFragment(QString(buffer));
     return 0;
 }
 
@@ -57,30 +57,30 @@ int onHeaderField(http_parser *parser, const char *p,size_t len)
 {
     QByteArray buffer(p,len);
   //  qDebug()<<"onHeaderField:"<<QString(buffer);
-    ((HttpHeader*)parser->data)->setCurrentHeaderField(QString(buffer));
+    ((TcpSocket*)parser->data)->getHeader().setCurrentHeaderField(QString(buffer));
     return 0;
 }
 
 int onHeaderValue(http_parser *parser, const char *p,size_t len)
 {
     QByteArray buffer(p,len);
-   // qDebug()<<"onHeaderValue:"<<QString(buffer);
-    ((HttpHeader*)parser->data)->addHeaderInfo(QString(buffer));
+  //  qDebug()<<"onHeaderValue:"<<QString(buffer);
+    ((TcpSocket*)parser->data)->getHeader().addHeaderInfo(QString(buffer));
     return 0;
 }
 
 int onHeadersComplete(http_parser *parser)
 {
-    ((HttpHeader*)parser->data)->setHost(((HttpHeader*)parser->data)->getHeaderInfo("Host"));
-    //qDebug()<<"Parse Header Complete";
+    ((TcpSocket*)parser->data)->getHeader().setHost(((TcpSocket*)parser->data)->getHeader().getHeaderInfo("Host"));
+  // qDebug()<<"Parse Header Complete";
     return 0;
 }
 
 int onBody(http_parser *parser, const char *p,size_t len)
 {
-    QByteArray buffer(p,len);
-    //qDebug()<<"onBody:"<<QString(buffer);
-    ((HttpHeader*)parser->data)->setBody(buffer);
+   // QByteArray buffer(p,len);
+  //  qDebug()<<"onBody:"<<QString(buffer);
+    ((TcpSocket*)parser->data)->appendData(p,len);
     return 0;
 }
 
@@ -99,12 +99,128 @@ Worker::Worker(const QString _name)
 
 void Worker::newSocket(int socket)
 {
-    QTcpSocket* s = new QTcpSocket(this);
+    TcpSocket* s = new TcpSocket(this);
     connect(s, SIGNAL(readyRead()), this    , SLOT(readClient()));
     connect(s, SIGNAL(disconnected()), this, SLOT(discardClient()));
     s->setSocketDescriptor(socket);
 }
 
+
+bool Worker::parseFormData(const QString &contentTypeString,const QByteArray &_body,QMap<QString,QByteArray> &formData)
+{
+    bool success=false;
+
+    int i=0;
+    for(i=0;i<contentTypeString.count();++i)
+    {
+        if(contentTypeString.at(i)==';')
+            break;
+    }
+
+    qDebug()<<"found form data!";
+
+    if(contentTypeString.mid(i+2,9)=="boundary=")
+    {
+        QString boundary=contentTypeString.mid(i+11,contentTypeString.count()-i-11);
+
+        qDebug()<<"And the boundary is:"<<boundary;
+
+        QByteArray body=_body;
+
+        QMap<QString,QByteArray> formData;
+
+        int linebegin=0;
+        int lineend=0;
+
+        while(body.at(lineend)!='\r' && body.at(lineend+1)!='\n')
+        {
+            ++lineend;
+        }
+
+        QString boundaryCheck= QByteArray(&body.data()[linebegin],lineend-linebegin);
+
+        if(boundaryCheck=="--"+boundary)
+        {
+            lineend+=2;
+            linebegin=lineend;
+
+            while(lineend<body.count())
+            {
+                while(lineend<body.count()-1 && body.at(lineend)!='\r' && body.at(lineend+1)!='\n')
+                {
+                    ++lineend;
+                }
+
+                QString fieldCheck= QByteArray(&body.data()[linebegin],lineend-linebegin);
+
+                if(!(fieldCheck.left(38)=="Content-Disposition: form-data; name=\""))
+                {
+                    break;
+                }
+
+                int namelength=38;
+
+                while(fieldCheck.at(namelength)!='\"' && namelength<fieldCheck.count())
+                {
+                    ++namelength;
+                }
+
+                QString fieldName=fieldCheck.mid(38,namelength-38);
+
+                lineend+=2;
+                linebegin=lineend;
+
+                if(lineend>=body.count())
+                    break;
+
+                while(lineend<body.count()-1 && body.at(lineend)!='\r' && body.at(lineend+1)!='\n')
+                {
+                    ++lineend;
+                }
+
+                lineend+=2;
+                linebegin=lineend;
+
+                QByteArray value;
+
+                while(lineend<body.count())
+                {
+                    while(lineend<body.count()-1 && body.at(lineend)!='\r' && body.at(lineend+1)!='\n')
+                    {
+                        ++lineend;
+                    }
+
+                    QByteArray thisline(&body.data()[linebegin],lineend-linebegin);
+                    QString aValueLine=thisline;
+
+                    if(aValueLine.left(2+boundary.count())=="--"+boundary)
+                    {
+
+                        formData[fieldName]=value;
+                        if(aValueLine.right(2)=="--")
+                        {
+                            success=true;
+                        }
+
+                        lineend+=2;
+                        linebegin=lineend;
+
+                        break;
+                    }
+
+                    value.append(thisline);
+                    value.append('\r');
+                    value.append('\n');
+
+                    lineend+=2;
+                    linebegin=lineend;
+                }
+            }
+        }
+    }
+
+    return success;
+}
 
 void Worker::readClient()
 {
@@ -114,17 +230,15 @@ void Worker::readClient()
     // This slot is called when the client sent data to the server. The
     // server looks if it was a get request and sends a very simple HTML
     // document back.
-    QTcpSocket* socket = (QTcpSocket*)sender();
-    if (socket->bytesAvailable())
-    {
-        HttpRequest request;
-        HttpResponse response;
+    TcpSocket* socket = (TcpSocket*)sender();
 
+    if (socket->bytesAvailable() && socket->isNewSocket())
+    {
         QByteArray inCommingContent=socket->readAll();
 
         http_parser_settings settings;
 
-        settings.on_message_begin=onMessageBegin;
+        settings. on_message_begin=onMessageBegin;
         settings. on_path=onPath;
         settings. on_query_string=onQueryString;
         settings. on_url=onUrl;
@@ -136,13 +250,10 @@ void Worker::readClient()
         settings. on_message_complete=onMessageComplete;
 
         http_parser_init(&parser,HTTP_REQUEST);
-        parser.data = &request.getHeader();
 
-        qDebug()<<"before execution. Buffer size:"<<inCommingContent.count();
+        parser.data = socket;
 
         size_t nparsed = http_parser_execute(&parser,&settings,inCommingContent.constData(),inCommingContent.count());
-
-        qDebug()<<"finish execution";
 
         if(parser.upgrade)
         {
@@ -155,85 +266,216 @@ void Worker::readClient()
         else
         {
             qDebug()<<"parsing seems to be succeed!";
-
-            qDebug()<<parser.method;
         }
 
-        request.debugInfo=inCommingContent;
+        socket->setRawHeader(inCommingContent);
 
-        PathTreeNode::TaskHandlerType handlerType;
+        bool isBodySizeOK=false;
+        unsigned int bodySize=socket->getHeader().getHeaderInfo("Content-Length").toUInt(&isBodySizeOK);
 
-        if(parser.method==HTTP_GET)
-            handlerType=PathTreeNode::GET;
-        else if(parser.method==HTTP_POST)
-            handlerType=PathTreeNode::POST;
-        else
+        if(isBodySizeOK==false)
         {
-
-            qDebug()<<"not get and post"<<socket->atEnd()<<socket->bytesAvailable()<<socket->ConnectedState;
-
-            qDebug()<<inCommingContent;
-            socket->close();
-            return;
-            //
+            bodySize=0;
         }
 
-        if(request.getHeader().getPath().left(6)=="/file/")
+        socket->setTotalBytes(bodySize);
+
+        socket->notNew();
+
+        if(socket->isEof())
         {
-            FILE *file;
-            char *buffer;
+            PathTreeNode::TaskHandlerType handlerType;
 
-            unsigned long fileLen;
-
-            file=fopen((QString("file/")+request.getHeader().getPath().right(request.getHeader().getPath().count()-6)).toStdString().c_str(),"rb");
-
-            if(!file)
+            if(parser.method==HTTP_GET)
             {
-                qDebug()<<"unable to open file.";
+                socket->getHeader().setHttpMethod(HttpHeader::HTTP_GET);
+                handlerType=PathTreeNode::GET;
+            }
+            else if(parser.method==HTTP_POST)
+            {
+                socket->getHeader().setHttpMethod(HttpHeader::HTTP_POST);
+                handlerType=PathTreeNode::POST;
+            }
+            else
+            {
+                qDebug()<<"not get and post"<<socket->atEnd()<<socket->bytesAvailable()<<socket->ConnectedState;
+                qDebug()<<inCommingContent;
                 socket->close();
-
                 return;
             }
 
-            fseek(file,0,SEEK_END);
-            fileLen=ftell(file);
-            fseek(file,0,SEEK_SET);
-
-            buffer=(char *)malloc(fileLen+1);
-
-            if(!buffer)
+            if(socket->getHeader().getPath().left(6)=="/file/")
             {
-                qDebug()<<"Memory error!";
+                qDebug()<<"serving binary!";
+                FILE *file;
+                char *buffer;
+
+                unsigned long fileLen;
+
+                file=fopen((QString("file/")+socket->getHeader().getPath().right(socket->getHeader().getPath().count()-6)).toStdString().c_str(),"rb");
+
+                if(!file)
+                {
+                    qDebug()<<"unable to open file.";
+                    socket->close();
+
+                    return;
+                }
+
+                fseek(file,0,SEEK_END);
+                fileLen=ftell(file);
+                fseek(file,0,SEEK_SET);
+
+                buffer=(char *)malloc(fileLen+1);
+
+                if(!buffer)
+                {
+                    qDebug()<<"Memory error!";
+                    fclose(file);
+                    socket->close();
+                    return;
+                }
+
+                fread(buffer,fileLen,1,file);
+
                 fclose(file);
+
+                QDataStream os(socket);
+                os.writeRawData(buffer,fileLen);
+
+                free(buffer);
+
+                socket->close();
+            }
+            else
+            {
+                HttpRequest request;
+                HttpResponse response;
+
+                request.getHeader()=socket->getHeader();
+
+
+                QString contentLengthString=socket->getHeader().getHeaderInfo("Content-Length");
+
+                if(!contentLengthString.isEmpty())
+                {
+                    //int contentLength=contentLengthString.toInt();
+
+                    QString contentTypeString=socket->getHeader().getHeaderInfo("Content-Type");
+
+                    if(!contentTypeString.isEmpty())
+                    {
+                        int i=0;
+                        for(i=0;i<contentTypeString.count();++i)
+                        {
+                            if(contentTypeString.at(i)==';')
+                                break;
+                        }
+
+                        QString contentType=contentTypeString.mid(0,i);
+
+                        if(contentType=="multipart/form-data")
+                        {
+                            QMap<QString,QByteArray> formData;
+                            bool success=parseFormData(contentType,socket->getBuffer(),formData);
+
+                            if(success)
+                            {
+                                request.setFormData(formData);
+                            }
+                            else
+                            {
+                                socket->close();
+                                return;
+                            }
+                        }
+                        else if(contentTypeString=="application/octet-stream")
+                        {
+                            // while(1){};
+                            qDebug()<<"uploading things!!";
+                            //return;
+                        }
+                    }
+
+                }
+
+                const TaskHandler *th=PathTree::getSingleton().getTaskHandlerByPath(request.getHeader().getPath(),handlerType);
+
+                if(th )
+                {
+                    if(!th->isEmpty())
+                    {
+                        if(th->invoke(request,response))
+                            qDebug()<<"invoke successful!";
+                        else
+                            qDebug()<<"invoke unsuccessful!";
+                    }
+                    else
+                        qDebug()<<"no task handler!";
+                }
+                else
+                    qDebug()<<"empty task handler!";
+
+                QTextStream os(socket);
+                os<<"{success:true}";
+                qDebug()<<"before closeing";
+
+                socket->close();
+            }
+        }
+        else{
+            qDebug()<<"did nothing because not eof!";
+            qDebug()<<"socket size:"<<socket->getTotalBytes()<<"current size:"<<socket->getBytesHaveRead();
+            return;
+        }
+    }
+    else if(socket->bytesAvailable() && !socket->isNewSocket() )
+    {
+        qDebug()<<"socket size:"<<socket->getTotalBytes()<<"current Size:"<<socket->getBytesHaveRead();
+        QByteArray inCommingContent=socket->readAll();
+        socket->appendData(inCommingContent);
+
+        if(socket->isEof())
+        {
+            qDebug()<<"eof! socket size:"<<socket->getTotalBytes()<<"current Size:"<<socket->getBytesHaveRead();
+
+            PathTreeNode::TaskHandlerType handlerType;
+
+            if(parser.method==HTTP_GET)
+            {
+                socket->getHeader().setHttpMethod(HttpHeader::HTTP_GET);
+                handlerType=PathTreeNode::GET;
+            }
+            else if(parser.method==HTTP_POST)
+            {
+                socket->getHeader().setHttpMethod(HttpHeader::HTTP_POST);
+                handlerType=PathTreeNode::POST;
+            }
+            else
+            {
+                qDebug()<<"not get and post"<<socket->atEnd()<<socket->bytesAvailable()<<socket->ConnectedState;
+                qDebug()<<inCommingContent;
                 socket->close();
                 return;
             }
 
-            fread(buffer,fileLen,1,file);
+            HttpRequest request;
 
-            fclose(file);
+            HttpResponse response;
 
-            QDataStream os(socket);
-            os.writeRawData(buffer,fileLen);
+            request.getHeader()=socket->getHeader();
 
-            free(buffer);
+            QString contentLengthString=socket->getHeader().getHeaderInfo("Content-Length");
 
-            socket->close();
-
-
-        }
-        else
-        {
-            QString contentLengthString=request.getHeader().getHeaderInfo("Content-Length");
             if(!contentLengthString.isEmpty())
             {
-                //int contentLength=contentLengthString.toInt();
 
-                QString contentTypeString=request.getHeader().getHeaderInfo("Content-Type");
+                QString contentTypeString=socket->getHeader().getHeaderInfo("Content-Type");
 
                 if(!contentTypeString.isEmpty())
                 {
                     int i=0;
+
                     for(i=0;i<contentTypeString.count();++i)
                     {
                         if(contentTypeString.at(i)==';')
@@ -244,135 +486,22 @@ void Worker::readClient()
 
                     if(contentType=="multipart/form-data")
                     {
-                        qDebug()<<"found form data!";
+                        QMap<QString,QByteArray> formData;
 
-                        if(contentTypeString.mid(i+2,9)=="boundary=")
+                        bool success=parseFormData(contentType,socket->getBuffer(),formData);
+                        if(success)
                         {
-                            QString boundary=contentTypeString.mid(i+11,contentTypeString.count()-i-11);
-
-                            qDebug()<<"And the boundary is:"<<boundary;
-
-
-
-                            QByteArray body=request.getHeader().getBody();
-
-                            QMap<QString,QByteArray> formData;
-
-                            int linebegin=0;
-                            int lineend=0;
-
-                            bool success=false;
-
-                            while(body.at(lineend)!='\r' && body.at(lineend+1)!='\n')
-                            {
-                                ++lineend;
-                            }
-
-                            QString boundaryCheck= QByteArray(&body.data()[linebegin],lineend-linebegin);
-
-
-
-                            if(boundaryCheck=="--"+boundary)
-                            {
-                                lineend+=2;
-                                linebegin=lineend;
-                                while(lineend<body.count())
-                                {
-                                    while(lineend<body.count()-1 && body.at(lineend)!='\r' && body.at(lineend+1)!='\n')
-                                    {
-                                        ++lineend;
-                                    }
-
-                                    QString fieldCheck= QByteArray(&body.data()[linebegin],lineend-linebegin);
-
-                                    if(!(fieldCheck.left(38)=="Content-Disposition: form-data; name=\""))
-                                    {
-                                        break;
-                                    }
-
-                                    int namelength=38;
-
-                                    while(fieldCheck.at(namelength)!='\"' && namelength<fieldCheck.count())
-                                    {
-                                        ++namelength;
-                                    }
-
-                                    QString fieldName=fieldCheck.mid(38,namelength-38);
-
-                                    //qDebug()<<"Field name:"<<fieldName;
-
-
-                                    lineend+=2;
-                                    linebegin=lineend;
-
-                                    if(lineend>=body.count())
-                                        break;
-
-                                    while(lineend<body.count()-1 && body.at(lineend)!='\r' && body.at(lineend+1)!='\n')
-                                    {
-                                        ++lineend;
-                                    }
-
-                                    lineend+=2;
-                                    linebegin=lineend;
-
-                                    QByteArray value;
-
-                                    while(lineend<body.count())
-                                    {
-                                        while(lineend<body.count()-1 && body.at(lineend)!='\r' && body.at(lineend+1)!='\n')
-                                        {
-                                            ++lineend;
-                                        }
-
-                                        QByteArray thisline(&body.data()[linebegin],lineend-linebegin);
-
-                                        QString aValueLine=thisline;
-
-                                      //  qDebug()<<aValueLine;
-
-                                        if(aValueLine.left(2+boundary.count())=="--"+boundary)
-                                        {
-
-                                         //   qDebug()<<"Value:"<<value;
-
-                                            formData[fieldName]=value;
-
-                                            if(aValueLine.right(2)=="--")
-                                            {
-                                                    success=true;
-                                            }
-
-                                            lineend+=2;
-                                            linebegin=lineend;
-
-                                            break;
-                                        }
-
-                                        value.append(thisline);
-                                        value.append('\r');
-                                        value.append('\n');
-
-                                        lineend+=2;
-                                        linebegin=lineend;
-                                    }
-                                }
-                            }
-
-                            if(success)
-                            {
-                                qDebug()<<"form data retrieved successfully!";
-                                request.setFormData(formData);
-
-                                //   qDebug()<<formData;
-                            }
+                            request.setFormData(formData);
+                        }
+                        else
+                        {
+                            socket->close();
+                            return;
                         }
                     }
                     else if(contentTypeString=="application/octet-stream")
                     {
-                       // while(1){};
                         qDebug()<<"uploading things!!";
-                    //    return;
                     }
                 }
             }
@@ -394,21 +523,25 @@ void Worker::readClient()
             else
                 qDebug()<<"empty task handler!";
 
-           // QDataStream os(socket);
+            FILE *file=fopen("xxx.pdf","wb");
+            fwrite(socket->getBuffer().data(),socket->getBuffer().count(),1,file);
+            fclose(file);
 
-           QTextStream os(socket);
-
-                    os<<"{success:true}";
-
+            QTextStream os(socket);
+            os<<"{success:true}";
             qDebug()<<"before closeing";
-          // socket->close();
+            socket->close();
         }
+        else
+            return;
+
+
     }
 }
 
 void Worker::discardClient()
 {
-    QTcpSocket* socket = (QTcpSocket*)sender();
+    TcpSocket* socket = (TcpSocket*)sender();
     socket->deleteLater();
     qDebug()<<"discard client inside worker";
 }

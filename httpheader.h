@@ -11,6 +11,17 @@ class HttpHeader:public QObject
 {
     Q_OBJECT
 
+
+   // QByteArray body;
+    QMap<QString,QString> headerInfo;
+    QString fragment;
+    QString queryString;
+    QString path;
+    QString host;
+    QString url;
+    QString currentHeaderField;
+
+public:
     enum HttpMethod
     {
         HTTP_DELETE=0,
@@ -45,18 +56,6 @@ class HttpHeader:public QObject
         HTTP_SUBSCRIBE,
         HTTP_UNSUBSCRIBE
     };
-
-    enum HttpMethod httpMethod;
-    QByteArray body;
-    QMap<QString,QString> headerInfo;
-    QString fragment;
-    QString queryString;
-    QString path;
-    QString host;
-    QString url;
-    QString currentHeaderField;
-
-public:
     HttpHeader();
 
     HttpHeader(const HttpHeader &in);
@@ -75,15 +74,15 @@ public:
         return httpMethod;
     }
 
-    QByteArray &getBody()
+  /*  QByteArray &getBody()
     {
         return body;
-    }
+    }*/
 
-    void setBody(const QByteArray &_body)
+  /*  void setBody(const QByteArray &_body)
     {
         body=_body;
-    }
+    }*/
 
     void setCurrentHeaderField(const QString &_currentHeaderField)
     {
@@ -150,10 +149,12 @@ public:
         stringBuilder= stringBuilder % headerInfo.keys()[i]% ":"% headerInfo.values()[i]% "<br/>\r\n";
 
         stringBuilder= stringBuilder % "Fragment:"% fragment% "<br/>\r\n"
-                    % "Body:"% body% "<br/>\r\n";
+                  /*  % "Body:"% body% "<br/>\r\n";*/;
 
         return stringBuilder;
     }
+    private:
+        enum HttpMethod httpMethod;
 };
 
 #endif // HTTPHEADER_H

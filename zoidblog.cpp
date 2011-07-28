@@ -148,11 +148,11 @@ void Zoidblog::handleImageUploadPost(HttpRequest &request,HttpResponse &)
 
     qDebug()<<"=======================================";
 
-    qDebug()<<request.getHeader().getBody();
+    //qDebug()<<request.getHeader().getBody();
 
     FILE *fp=fopen("uploaded.pdf","wb");
 
-    fwrite(request.getHeader().getBody().data(),request.getHeader().getBody().count(),1,fp);
+    //fwrite(request.getHeader().getBody().data(),request.getHeader().getBody().count(),1,fp);
 
     fclose(fp);
     qDebug()<<"========================================";
