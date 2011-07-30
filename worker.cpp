@@ -90,18 +90,18 @@ int onMessageComplete(http_parser *)
     return 0;
 }
 
-
-
-Worker::Worker(const QString _name)
+Worker::Worker(const QString _name):inHandlingARequest(false),pathTree(),webAppTable()
 {
    workerName=_name;
 }
 
 void Worker::newSocket(int socket)
 {
+    qDebug()<<workerName<<" is handling a request; thread id"<<thread()->currentThreadId();
     TcpSocket* s = new TcpSocket(this);
     connect(s, SIGNAL(readyRead()), this    , SLOT(readClient()));
     connect(s, SIGNAL(disconnected()), this, SLOT(discardClient()));
+    inHandlingARequest=true;
     s->setSocketDescriptor(socket);
 }
 
@@ -241,7 +241,7 @@ void Worker::readClient()
 
                 socket->getRequest().parseFormData();
 
-                const TaskHandler *th=PathTree::getSingleton().getTaskHandlerByPath(socket->getRequest().getHeader().getPath(),handlerType);
+                const TaskHandler *th=pathTree.getTaskHandlerByPath(socket->getRequest().getHeader().getPath(),handlerType);
 
                 if(th)
                 {
@@ -270,10 +270,28 @@ void Worker::readClient()
     }
 }
 
+
+void Worker::registerWebApps(QVector<int> &webAppClassIDs)
+{
+    for(int i=0;i<webAppClassIDs.count();++i)
+    {
+        WebApp *app= (WebApp*) QMetaType::construct(webAppClassIDs[i]);
+
+        webAppTable[webAppClassIDs[i]]=app;
+
+        app->setPathTree(&pathTree);
+
+        app->registerPathHandlers();
+
+        app->init();
+    }
+}
+
 void Worker::discardClient()
 {
     TcpSocket* socket = (TcpSocket*)sender();
     socket->deleteLater();
+    inHandlingARequest=false;
     qDebug()<<"discard client inside worker";
 }
 
@@ -281,19 +299,19 @@ void Worker::run()
 {
     qDebug()<<workerName<<"'s thread id"<<thread()->currentThreadId();
 
-    forever {
-
-
-        int socket=InCommingConnectionQueue::getSingleton().getATask();
-
-        if(socket!=-1)
+    forever
+    {
+        if(!inHandlingARequest)
         {
-            newSocket(socket);
+            int socket=InCommingConnectionQueue::getSingleton().getATask();
+
+            if(socket!=-1)
+            {
+                newSocket(socket);
+            }
         }
 
-         QCoreApplication::processEvents();
-
-
+        QCoreApplication::processEvents();
     }
 
     exec();

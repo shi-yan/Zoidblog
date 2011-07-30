@@ -11,7 +11,10 @@ class Zoidblog:public WebApp
 
 public:
     Zoidblog();
+    Zoidblog(const Zoidblog &):WebApp(){}
+    void registerPathHandlers();
     void init();
+
 public slots:
     void handlePathGet(HttpRequest &,HttpResponse &);
     void handleTestGet(HttpRequest &,HttpResponse &);

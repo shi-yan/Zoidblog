@@ -11,11 +11,9 @@ int main(int argc, char *argv[])
 
 
 
-    Zoidblog blog;
+    REGISTER_WEBAPP(Zoidblog);
 
-    blog.init();
-
-   QApplication a(argc, argv);
+    QApplication a(argc, argv);
 
     HttpServer::getSingleton().start(3,8080);
 

@@ -12,7 +12,12 @@
 
  }
 
-void Zoidblog::init()
+ void Zoidblog::init()
+ {
+     qDebug()<<"inside init";
+ }
+
+void Zoidblog::registerPathHandlers()
 {
     bool result=addGetHandler("/path","handlePathGet");
 

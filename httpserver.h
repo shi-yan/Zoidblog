@@ -1,12 +1,19 @@
 #ifndef HTTPSERVER_H
 #define HTTPSERVER_H
 
+#define REGISTER_WEBAPP( webapp ) \
+    do { \
+      HttpServer::getSingleton().registerWebApp<webapp>("webapp");\
+    } while (0)
+
 #include <QTcpServer>
 #include <QTcpSocket>
 #include <QStringList>
 #include <QDateTime>
 #include <QDebug>
 #include "worker.h"
+
+
 
 class HttpServer : public QTcpServer
  {
@@ -19,6 +26,8 @@ class HttpServer : public QTcpServer
     HttpServer(QObject* parent = 0);
 
     void incomingConnection(int socket);
+
+    QVector<int> webAppSet;
 
 public:
 
@@ -39,6 +48,14 @@ public:
      {
          disabled = false;
      }
+
+     template<class T>
+     void registerWebApp(const char * webAppName)
+     {
+         int id = qRegisterMetaType<T>(webAppName);
+        webAppSet.push_back(id);
+     }
+
  };
 
 #endif // HTTPSERVER_H

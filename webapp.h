@@ -4,12 +4,16 @@
 #include <QObject>
 #include "httpresponse.h"
 #include "httprequest.h"
+#include "pathtree.h"
 
 
 class WebApp:public QObject
 {
     Q_OBJECT
+
     const QString pathSpace;
+
+    PathTree *pathTree;
 
 public:
     WebApp(const QString &_pathSpace="",QObject *parent =0);
@@ -28,7 +32,14 @@ public:
     }
 
 
-        virtual void init()=0;
+    virtual void init(){}
+
+    virtual void registerPathHandlers()=0;
+
+    void setPathTree(PathTree *pt)
+    {
+        pathTree=pt;
+    }
 };
 
 #endif // WEBAPP_H

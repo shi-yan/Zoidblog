@@ -31,10 +31,11 @@ void HttpServer::start(int numOfWorkers,quint16 port)
     if(numOfWorkers<1)
         numOfWorkers=1;
 
+
     for(int i=0;i<numOfWorkers;++i)
     {
         Worker *aWorker=new Worker(QString("worker %1").arg(i));
-
+        aWorker->registerWebApps(webAppSet);
         aWorker->start();
         aWorker->moveToThread(aWorker);
     }

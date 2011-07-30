@@ -11,14 +11,9 @@ class PathTree:public QObject
 
     PathTreeNode root;
 
-    PathTree(QObject *parent=0);
-public:
 
-    static PathTree &getSingleton()
-    {
-        static PathTree obj;
-        return obj;
-    }
+public:
+    PathTree(QObject *parent=0);
 
     bool registerAPath(const QString &path,QObject *object,const QString &methodName,enum PathTreeNode::TaskHandlerType);
     const TaskHandler * getTaskHandlerByPath(const QString &path,enum PathTreeNode::TaskHandlerType);

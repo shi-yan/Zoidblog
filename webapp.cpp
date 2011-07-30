@@ -18,7 +18,7 @@ bool WebApp::addGetHandler(const QString &_path,const QString &handlerName)
     QString functionName=handlerName;
 
 
-    return PathTree::getSingleton().registerAPath(path,this,functionName.append("(HttpRequest&,HttpResponse&)"),PathTreeNode::GET);
+    return pathTree->registerAPath(path,this,functionName.append("(HttpRequest&,HttpResponse&)"),PathTreeNode::GET);
 }
 
 
@@ -32,6 +32,6 @@ bool WebApp::addPostHandler(const QString &_path,const QString &handlerName)
     QString functionName=handlerName;
 
 
-    return PathTree::getSingleton().registerAPath(path,this,functionName.append("(HttpRequest&,HttpResponse&)"),PathTreeNode::POST);
+    return pathTree->registerAPath(path,this,functionName.append("(HttpRequest&,HttpResponse&)"),PathTreeNode::POST);
 
 }
