@@ -56,17 +56,24 @@ void PageTemplate::loadFromFile(const QString &filename)
     QFile data(filename);
     if (data.open(QFile::ReadOnly ))
     {
-        QTextStream in(&data);
-        templateString=in.readAll();
+        QDataStream in(&data);
+        char *filecon=new char[data.size()];
+        in.readRawData(filecon,data.size());
+
+        templateString=QString().fromUtf8(filecon,data.size());
+
+        delete [] filecon;
         data.close();
 
         parseTemplate();
     }
 }
 
-QByteArray & PageTemplate::render()
+QByteArray PageTemplate::render()
 {
     QString result=templateString;
+
+
     QMapIterator<QString, PlaceMarker> i(placeMarkers);
     while (i.hasNext())
     {
@@ -75,6 +82,8 @@ QByteArray & PageTemplate::render()
         for(int e=0;e<i.value().getPositions().count();++e)
             result.replace(i.value().getPositions()[e],i.value().getValue());
     }
+
+    return result.toUtf8();
 }
 
 void PageTemplate::registerPlaceMarkerValue(const QString &field,const QByteArray &value)

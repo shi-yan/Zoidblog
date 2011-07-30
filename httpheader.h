@@ -143,23 +143,7 @@ public:
         url=_url;
     }
 
-    QString toString()
-    {
-        QString stringBuilder;
-
-        stringBuilder = "Url:"% url% "<br/>\r\n"
-        % "Host:"% host% "<br/>\r\n"
-        % "Path:"% path% "<br/>\r\n"
-        % "Query String:"% queryString% "<br/>\r\n";
-
-        for(int i=0;i<headerInfo.count();++i)
-        stringBuilder= stringBuilder % headerInfo.keys()[i]% ":"% headerInfo.values()[i]% "<br/>\r\n";
-
-        stringBuilder= stringBuilder % "Fragment:"% fragment% "<br/>\r\n"
-                  /*  % "Body:"% body% "<br/>\r\n";*/;
-
-        return stringBuilder;
-    }
+    QString toString();
     private:
         enum HttpMethod httpMethod;
 };

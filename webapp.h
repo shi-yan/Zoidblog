@@ -17,6 +17,7 @@ class WebApp:public QObject
 
 public:
     WebApp(const QString &_pathSpace="",QObject *parent =0);
+    WebApp(const WebApp &in):QObject(),pathSpace(in.pathSpace){}
 
 
 

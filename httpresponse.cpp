@@ -68,19 +68,21 @@ HttpResponse::~HttpResponse()
       {
           QDataStream bos(socket);
           bos<<buffer;
-          break;}
+          break;
+      }
 
       case TEXT:
-      default:{
-          QTextStream tos( socket );
-          tos.setCodec("UTF-8");
-          tos << QString("HTTP/1.1 %1 Ok\r\n"
-                "Content-Type: text/html; charset=\"utf-8\"\r\n"
-                "\r\n").arg(statusCode);
+      default:
+      {
+          QDataStream tos( socket );
 
-          tos<<header;
-
+          buffer.insert(0,header.toString());
+          buffer.insert(0,QString("HTTP/1.1 %1 Ok\r\n"
+                                             "Content-Type: text/html; charset=\"utf-8\"\r\n"
+                                             "\r\n").arg(200));
           tos<<buffer;
-          break;}
+          break;
+      }
+
       }
   }

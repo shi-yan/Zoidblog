@@ -2,16 +2,16 @@
 #define ZOIDBLOG_H
 
 #include "webapp.h"
+#include "pagetemplate.h"
 
 class Zoidblog:public WebApp
 {
     Q_OBJECT
 
+    PageTemplate adminDashboardTemplate;
 
 
 public:
-    Zoidblog();
-    Zoidblog(const Zoidblog &):WebApp(){}
     void registerPathHandlers();
     void init();
 
@@ -24,6 +24,8 @@ public slots:
 
     void handleImageUploadGet(HttpRequest &,HttpResponse &);
     void handleImageUploadPost(HttpRequest &,HttpResponse &);
+
+    void adminGetHandler(HttpRequest &,HttpResponse &);
 };
 
 #endif // ZOIDBLOG_H

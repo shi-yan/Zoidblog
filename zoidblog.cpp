@@ -7,14 +7,10 @@
 #include <cstdio>
 #include "pagetemplate.h"
 
- Zoidblog::Zoidblog():WebApp()
-{
-
- }
 
  void Zoidblog::init()
  {
-     qDebug()<<"inside init";
+     adminDashboardTemplate.loadFromFile("template/admin.template");
  }
 
 void Zoidblog::registerPathHandlers()
@@ -28,6 +24,8 @@ result |=   addPostHandler("/test","handleTestPost");
     result |=addGetHandler("/imageupload","handleImageUploadGet");
 
     result |= addPostHandler("/imageupload","handleImageUploadPost");
+
+    result |= addGetHandler("/admin","adminGetHandler");
 
     PageTemplate templateA;
     templateA.setTemplate("<br><p>{{{sometext_here}}}</p>\r\n");
@@ -93,4 +91,13 @@ void Zoidblog::handleImageUploadGet(HttpRequest &,HttpResponse &)
 void Zoidblog::handleImageUploadPost(HttpRequest &request,HttpResponse &)
 {
 
+}
+
+void Zoidblog::adminGetHandler(HttpRequest &,HttpResponse &response)
+{
+
+   response<<(adminDashboardTemplate.render());
+
+
+    response.finish();
 }

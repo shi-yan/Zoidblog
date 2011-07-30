@@ -30,7 +30,7 @@ public:
     void setTemplate(const QString &temp);
     void loadFromFile(const QString &filename);
 
-    QByteArray & render();
+    QByteArray render();
     void registerPlaceMarkerValue(const QString &field,const QByteArray &value);
 
 };

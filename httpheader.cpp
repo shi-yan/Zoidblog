@@ -46,3 +46,15 @@ QTextStream & operator<<(QTextStream &ts,  HttpHeader &in)
     }
     return ts;
 }
+
+QString HttpHeader::toString()
+{
+    QString result;
+    QMapIterator<QString, QString> i(getHeaderInfo());
+    while (i.hasNext())
+    {
+        i.next();
+        result.append(i.key()).append(": ").append(i.value()).append("\r\n");
+    }
+    return result;
+}
