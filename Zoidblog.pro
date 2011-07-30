@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core network sql xml gui
+QT       += core network sql xml gui regexp
 
 
 TARGET = Zoidblog
@@ -33,7 +33,9 @@ SOURCES += main.cpp \
     incommingconnectionqueue.cpp \
     filememcache.cpp \
     filememcachedata.cpp \
-    tcpsocket.cpp
+    tcpsocket.cpp \
+    pagetemplate.cpp \
+    placemarker.cpp
 
 HEADERS += \
     httpserver.h \
@@ -54,4 +56,6 @@ HEADERS += \
     incommingconnectionqueue.h \
     filememcache.h \
     filememcachedata.h \
-    tcpsocket.h
+    tcpsocket.h \
+    pagetemplate.h \
+    placemarker.h

@@ -5,6 +5,7 @@
 #include <QImage>
 #include <QBuffer>
 #include <cstdio>
+#include "pagetemplate.h"
 
  Zoidblog::Zoidblog():WebApp()
 {
@@ -22,6 +23,11 @@ result |=   addPostHandler("/test","handleTestPost");
     result |=addGetHandler("/imageupload","handleImageUploadGet");
 
     result |= addPostHandler("/imageupload","handleImageUploadPost");
+
+    PageTemplate templateA;
+    templateA.setTemplate("<br><p>{{{sometext_here}}}</p>\r\n");
+
+
 
     qDebug()<<"result of register handler:"<<result;
 }
