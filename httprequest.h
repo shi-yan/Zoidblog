@@ -56,13 +56,28 @@ public:
     ~HttpRequest();
 
     void appendData(const char*,unsigned int);
-    void appendData(QByteArray &ba);
+    void appendData(const QByteArray &ba);
 
     void setRawHeader(const QString &_rh);
 
     QString & getRawHeader()
     {
         return rawHeader;
+    }
+
+    unsigned int getTotalBytes()
+    {
+        return totalBytes;
+    }
+
+    unsigned int getBytesHaveRead()
+    {
+        return bytesHaveRead;
+    }
+
+    void setTotalBytes(unsigned _totalBytes)
+    {
+        totalBytes=_totalBytes;
     }
 };
 

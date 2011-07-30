@@ -27,7 +27,6 @@ public:
     unsigned int getTotalBytes();
     unsigned int getBytesHaveRead();
     HttpHeader & getHeader();
-    void setHttpHeader(HttpHeader &_header);
     bool isEof();
     void notNew();
 
@@ -37,9 +36,15 @@ public:
     void appendData(const char* buffer,unsigned int size);
     void appendData(const QByteArray &buffer);
 
-    QByteArray &getBuffer();
+    HttpRequest & getRequest()
+    {
+        return request;
+    }
 
-
+    HttpResponse & getResponse()
+    {
+        return response;
+    }
 };
 
 #endif // TCPSOCKET_H
