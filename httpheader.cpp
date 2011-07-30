@@ -35,3 +35,14 @@ void HttpHeader::operator=(const HttpHeader &in)
     host=in.host;
     url=in.url;
 }
+
+QTextStream & operator<<(QTextStream &ts,  HttpHeader &in)
+{
+    QMapIterator<QString, QString> i(in.getHeaderInfo());
+    while (i.hasNext())
+    {
+        i.next();
+        ts << i.key() << ": " << i.value() << "\r\n";
+    }
+    return ts;
+}

@@ -5,6 +5,7 @@
 #include <QString>
 #include <QObject>
 #include <QStringBuilder>
+#include <QTextStream>
 
 
 class HttpHeader:public QObject
@@ -102,6 +103,11 @@ public:
 
     }
 
+    void removeHeaderInfo(const QString &_headerField)
+    {
+        headerInfo.remove(_headerField);
+    }
+
     void addHeaderInfo(const QString &_headerValue)
     {
         headerInfo[currentHeaderField]=_headerValue;
@@ -157,5 +163,8 @@ public:
     private:
         enum HttpMethod httpMethod;
 };
+
+
+ QTextStream & operator<<(QTextStream &ts,  HttpHeader &in);
 
 #endif // HTTPHEADER_H

@@ -53,6 +53,8 @@ public:
         return hasSetFormData;
     }
 
+    void parseFormData();
+
     ~HttpRequest();
 
     void appendData(const char*,unsigned int);

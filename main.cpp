@@ -9,11 +9,11 @@
 int main(int argc, char *argv[])
 {
 
-    qRegisterMetaType<HttpRequest>("HttpRequest");
-    qRegisterMetaType<HttpResponse>("HttpResponse");
+
 
     Zoidblog blog;
-    blog.registerHandlers();
+
+    blog.init();
 
    QApplication a(argc, argv);
 

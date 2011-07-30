@@ -7,13 +7,11 @@ class Zoidblog:public WebApp
 {
     Q_OBJECT
 
+
+
 public:
     Zoidblog();
-
-    ~Zoidblog();
-
-    void registerHandlers();
-
+    void init();
 public slots:
     void handlePathGet(HttpRequest &,HttpResponse &);
     void handleTestGet(HttpRequest &,HttpResponse &);

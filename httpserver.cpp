@@ -2,10 +2,14 @@
 #include "httpheader.h"
 #include "worker.h"
 #include "incommingconnectionqueue.h"
+#include "httprequest.h"
+#include "httpresponse.h"
 
 HttpServer::HttpServer(QObject* parent )
     : QTcpServer(parent), disabled(false),connectionCount(0)
 {
+    qRegisterMetaType<HttpRequest>("HttpRequest");
+    qRegisterMetaType<HttpResponse>("HttpResponse");
 }
 
 void HttpServer::incomingConnection(int socket)

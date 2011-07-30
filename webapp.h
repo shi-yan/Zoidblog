@@ -12,19 +12,23 @@ class WebApp:public QObject
     const QString pathSpace;
 
 public:
-    WebApp(const QString &_pathSpace,QObject *parent =0);
+    WebApp(const QString &_pathSpace="",QObject *parent =0);
 
-    virtual void registerHandlers() = 0;
+
 
     bool addGetHandler(const QString &_path,const QString &handlerName);
     bool addPostHandler(const QString &_path,const QString &handlerName);
 
     virtual ~WebApp(){}
 
+
     const QString & getPathSpace()
     {
         return pathSpace;
     }
+
+
+        virtual void init()=0;
 };
 
 #endif // WEBAPP_H

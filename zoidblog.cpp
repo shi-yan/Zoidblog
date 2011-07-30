@@ -6,20 +6,17 @@
 #include <QBuffer>
 #include <cstdio>
 
-Zoidblog::Zoidblog():WebApp("")
+ Zoidblog::Zoidblog():WebApp()
 {
-}
 
-Zoidblog::~Zoidblog()
-{
-}
+ }
 
-void Zoidblog::registerHandlers()
+void Zoidblog::init()
 {
     bool result=addGetHandler("/path","handlePathGet");
 
     result |= addGetHandler("/test","handleTestGet");
-
+result |=   addPostHandler("/test","handleTestPost");
     result |= addPostHandler("/path","handlePathPost");
 
     result |=addGetHandler("/imageupload","handleImageUploadGet");
@@ -45,40 +42,36 @@ void Zoidblog::handlePathGet(HttpRequest &,HttpResponse &response)
         response.getBuffer().append("</form>");*/
 }
 
-void Zoidblog::handleTestGet(HttpRequest &request,HttpResponse &response)
+void Zoidblog::handleTestGet(HttpRequest &,HttpResponse &response)
 {
+    response<<"<h2>nothing to see here!</h2><br/>\r\n";
+    response<<"<form action=\"/test\" method=\"post\" enctype=\"Multipart/form-data\" >";
+    response<<"<input type=\"text\" name=\"field1\">";
+    response<<"<input type=\"text\" name=\"field2\">";
+    response<<"<textarea type=\"text\" name=\"field3\" rows=\"2\" cols=\"20\"></textarea>";
+    response<<"<input type=\"submit\" value=\"Submit\">";
+    response<<"</form>";
+    response.finish();
 }
 
 void Zoidblog::handlePathPost(HttpRequest &request,HttpResponse &response)
 {
-    qDebug()<<"inside post path test!!";
 
-  /*  if(request.hasFormData())
-    {
-        qDebug()<<"field1:"<<request.getFormData("field1");
-        qDebug()<<"field2:"<<request.getFormData("field2");
-        qDebug()<<"field3:"<<request.getFormData("field3");
-
-        response.getBuffer().clear();
-
-        response.getBuffer().append("found Form Data:<br/>");
-
-        response.getBuffer().append("field1:"+QString::fromUtf8(request.getFormData("field1").data(),request.getFormData("field1").count())+"<br/>");
-
-        response.getBuffer().append("field2:"+request.getFormData("field2")+"<br/>");
-
-        response.getBuffer().append("field3:"+request.getFormData("field3")+"<br/>");
-
-
-
-
-
-
-    }*/
 }
 
-void Zoidblog::handleTestPost(HttpRequest &,HttpResponse &)
+void Zoidblog::handleTestPost(HttpRequest &request,HttpResponse &response)
 {
+    response<<"inside post path test!!";
+
+    if(request.hasFormData())
+    {
+        response<<"found Form Data:<br/>";
+        response<<"field1:"<<QString::fromUtf8(request.getFormData("field1").data(),request.getFormData("field1").count()).append("<br/>");
+        response<<"field2:"<<(request.getFormData("field2")+"<br/>");
+        response<<"field3:"<<(request.getFormData("field3")+"<br/>");
+    }
+
+    response.finish();
 }
 
 void Zoidblog::handleImageUploadGet(HttpRequest &,HttpResponse &)
