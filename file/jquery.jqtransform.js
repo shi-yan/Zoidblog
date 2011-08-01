@@ -331,7 +331,7 @@
 			$('input:text, input:password', this).jqTransInputText();			
 			$('input:checkbox', this).jqTransCheckBox();
 			$('input:radio', this).jqTransRadio();
-			//$('textarea', this).jqTransTextarea();
+			$('textarea', this).jqTransTextarea();
 			
 			if( $('select', this).jqTransSelect().length > 0 ){jqTransformAddDocumentListener();}
 			selfForm.bind('reset',function(){var action = function(){jqTransformReset(this);}; window.setTimeout(action, 10);});
