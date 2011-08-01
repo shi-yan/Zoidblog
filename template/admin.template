@@ -1,195 +1,285 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
 <base href="../file/" />
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-	<meta http-equiv="Content-Script-Type" content="text/javascript" />
-	<meta http-equiv="Content-Style-Type" content="text/css" />
-	<meta name="gmapkey" content="" />
-	<meta name="description" content="" />
-	<meta name="keywords" content="" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta http-equiv="Content-Script-Type" content="text/javascript" />
+<meta http-equiv="Content-Style-Type" content="text/css" />
+<meta name="gmapkey" content="" />
+<meta name="description" content="" />
+<meta name="keywords" content="" />
 
-	<title></title>
+<title>Zoidblog Dashboard</title>
 
-	<link rel="stylesheet" href="jqtransform.css" type="text/css" media="all" />
-	<link rel="stylesheet" href="demo.css" type="text/css" media="all" />
-	<link type="text/css" href="css/smoothness/jquery-ui-1.8.14.custom.css" rel="stylesheet" />	
-
-
-
-
-<link rel="stylesheet" type="text/css" href="/lib/blueprint/screen.css" media="screen, projection" /> 
-<link rel="stylesheet" type="text/css" href="/lib/blueprint/print.css" media="print" /> 
+<link rel="stylesheet" href="jqtransform.css" type="text/css" media="all" />
+<link rel="stylesheet" href="demo.css" type="text/css" media="all" />
+<link type="text/css" href="css/smoothness/jquery-ui-1.8.14.custom.css" rel="stylesheet" />
+<link rel="stylesheet" type="text/css" href="lib/blueprint/screen.css" media="screen, projection" /> 
+<link rel="stylesheet" type="text/css" href="lib/blueprint/print.css" media="print" /> 
 <!--[if lt IE 8]><link rel="stylesheet" href="../lib/blueprint/ie.css" type="text/css" media="screen, projection" /><![endif]--> 
-
-	<script type="text/javascript" src="jquery-1.6.2.js" ></script>
 <link rel="stylesheet" href="jquery.wysiwyg.css" type="text/css"/> 
 <link rel="stylesheet" href="jquery.wysiwyg.modal.css" type="text/css"/> 
-<link rel="stylesheet" href="/lib/jquery.simplemodal.css" type="text/css"/> 
+<link rel="stylesheet" href="lib/jquery.simplemodal.css" type="text/css"/> 
 
+<style type="text/css">
+		body {
+			margin: 0;
+			padding: 0;
+			font-family: Georgia;
+			font-size: 0.9em;
+			line-height: 1.4em;
+		}
+		
+		#example {
+			position: relative;
+			width: 500px;
+			padding: 20px;
+		}
+		
+		p {
+			margin: 7px 0 0 0;
+		}
+		
+		#purr-container {
+			position: fixed;
+			top: 0;
+			right: 0;
+background-color:none;
+border:0px;
+		}
+		
+		.notice {
+			position: relative;
+			width: 324px;
+background-color:none;
+border:0px;
+		}
+			.notice .close	{position: absolute; top: 12px; right: 12px; display: block; width: 18px; height: 17px; text-indent: -9999px; background: url(purrClose.png) no-repeat 0 10px;}
+		
+		.notice-body {
+			min-height: 50px;
+			padding: 22px 22px 0 22px;
+			background: url(purrTop.png) no-repeat left top;
+			color: #f9f9f9;
+background-color:none;
+border:0px;
+		}
+			.notice-body img	{width: 50px; margin: 0 10px 0 0; float: left;}
+			.notice-body h3	{margin: 0; font-size: 1.1em;}
+			.notice-body p		{margin: 5px 0 0 60px; font-size: 0.8em; line-height: 1.4em;}
+		
+		.notice-bottom {
+			height: 22px;
+			background: url(purrBottom.png) no-repeat left top;
+background-color:none;
+border:0px;
+		}
+	</style>
+
+
+<script type="text/javascript" src="jquery-1.6.2.js" ></script>
+<script type="text/javascript" src="jquery.purr.js"></script>
 <script type="text/javascript" src="jquery.wysiwyg.js"></script> 
-<script type="text/javascript" src="/lib/jquery.simplemodal.js"></script> 
-<script type="text/javascript" src="/controls/wysiwyg.image.js"></script> 
-<script type="text/javascript" src="/controls/wysiwyg.link.js"></script> 
-<script type="text/javascript" src="/controls/wysiwyg.table.js"></script> 
+<script type="text/javascript" src="lib/jquery.simplemodal.js"></script> 
+<script type="text/javascript" src="controls/wysiwyg.image.js"></script> 
+<script type="text/javascript" src="controls/wysiwyg.link.js"></script> 
+<script type="text/javascript" src="controls/wysiwyg.table.js"></script> 
+<script type="text/javascript" src="js/jquery-ui-1.8.14.custom.min.js"></script>
+<script type="text/javascript" src="jquery.jqtransform.js" ></script>
 
-	<script type="text/javascript" src="js/jquery-ui-1.8.14.custom.min.js"></script>
-	<script type="text/javascript" src="jquery.jqtransform.js" ></script>
-	<script language="javascript">
-		$(function(){
-			$('form').jqTransform({imgPath:'img/'});
-		});
-	</script>
+
+<script language="javascript">
+	$(function()
+	{
+		$('form').jqTransform({imgPath:'img/'});
+	});
+</script>
 	
 <script type="text/javascript">
-			$(function()
+	$(function()
+	{
+		// Tabs
+		$('#tabs').tabs();
+
+		$("#editsave").button().click(function() 
+		{
+
+
+bodyContent = $.ajax({
+      url: "../save",
+   //   global: false,
+      type: "POST",
+      data: ({id : 'hahaha'}),
+      dataType: "html",
+      //async:false,
+     success: function( data ) {
+    if (console && console.log){
+      console.log( 'Sample of data:', data.slice(0,100) );
+    }
+  }
+   }
+).responseText;
+
+						var notice = '<div class="notice">'
+								  + '<div class="notice-body">' 
+									  + '<img src="info.png" alt="" />'
+									  + '<h3>Purr Example</h3>'
+									  + '<p>This a normal Purr. It will fade out on its own.</p>'
+								  + '</div>'
+								  + '<div class="notice-bottom">'
+								  + '</div>'
+							  + '</div>';
+							  
+						$( notice ).purr(
+							{
+								usingTransparentPNG: true
+							}
+						);
+
+
+return false;
+		});;
+		$("#editpublish").button().click(function() 
+		{
+			alert( "Could display a menu to select an action" );
+		});;
+		$("#editclose").button().click(function() 
+		{
+			alert( "Could display a menu to select an action" );
+		});;
+
+		$(".unpublish").button({
+			text: false,
+			icons: 
 			{
-
-				
-				// Tabs
-				$('#tabs').tabs();
-
-$(".unpublish").button( {
-					text: false,
-					icons: {
-						primary: "ui-icon-unlocked"
-					}
-				})
-				.click(function() {
-					alert( "Could display a menu to select an action" );
-				});
-			
-	
-		$( ".edit" )
-			.button({
-				text: true,
-					icons: {
-						primary: "ui-icon-pencil"
-					}
-
-})
-			.click(function() {
-				alert( "Running the last action" );
-			})
-			.next()
-				
-				.button({
-					text: true,
-					icons: {
-						primary: "ui-icon-trash"
-					}
-				}).click(function() {
-					alert("hhhh");
-				})
-				.parent()
-					.buttonset();
-
-
-$( "#nextposts" )
-			.button({
-				text: true,
-					
-
-})
-			.click(function() {
-				alert( "Running the last action" );
-			})
-
-
-$( "#prevposts" )
-			.button({
-				text: true,
-				
-
-})
-			.click(function() {
-				alert( "Running the last action" );
-			})
-				
-			});
-		</script>
-<script type="text/javascript"> 
-(function($) {
-	$(document).ready(function() {
-		$('#wysiwyg').wysiwyg({
-		  controls: {
-			bold          : { visible : true },
-			italic        : { visible : true },
-			underline     : { visible : true },
-			strikeThrough : { visible : true },
-			
-			justifyLeft   : { visible : true },
-			justifyCenter : { visible : true },
-			justifyRight  : { visible : true },
-			justifyFull   : { visible : true },
- 
-			indent  : { visible : true },
-			outdent : { visible : true },
- 
-			subscript   : { visible : true },
-			superscript : { visible : true },
-			
-			undo : { visible : true },
-			redo : { visible : true },
-			
-			insertOrderedList    : { visible : true },
-			insertUnorderedList  : { visible : true },
-			insertHorizontalRule : { visible : true },
- 
-			h4: {
-				visible: true,
-				className: 'h4',
-				command: ($.browser.msie || $.browser.safari) ? 'formatBlock' : 'heading',
-				arguments: ($.browser.msie || $.browser.safari) ? '<h4>' : 'h4',
-				tags: ['h4'],
-				tooltip: 'Header 4'
-			},
-			h5: {
-				visible: true,
-				className: 'h5',
-				command: ($.browser.msie || $.browser.safari) ? 'formatBlock' : 'heading',
-				arguments: ($.browser.msie || $.browser.safari) ? '<h5>' : 'h5',
-				tags: ['h5'],
-				tooltip: 'Header 5'
-			},
-			h6: {
-				visible: true,
-				className: 'h6',
-				command: ($.browser.msie || $.browser.safari) ? 'formatBlock' : 'heading',
-				arguments: ($.browser.msie || $.browser.safari) ? '<h6>' : 'h6',
-				tags: ['h6'],
-				tooltip: 'Header 6'
-			},
-			
-			cut   : { visible : true },
-			copy  : { visible : true },
-			paste : { visible : true },
-			html  : { visible: true },
-			increaseFontSize : { visible : true },
-			decreaseFontSize : { visible : true },
-			exam_html: {
-				exec: function() {
-					this.insertHtml('<abbr title="exam">Jam</abbr>');
-					return true;
-				},
-				visible: true
+				primary: "ui-icon-unlocked"
 			}
-		  },
-		  events: {
-			click: function(event) {
-				if ($("#click-inform:checked").length > 0) {
-					event.preventDefault();
-					alert("You have clicked jWysiwyg content!");
-				}
-			}
-		  }
+		}).click(function() 
+		{
+			alert( "Could display a menu to select an action" );
 		});
- 
-		$('#wysiwyg').wysiwyg("insertHtml", "Sample code");
+			
+		$( ".edit" ).button({
+			text: true,
+			icons: 
+			{
+				primary: "ui-icon-pencil"
+			}
+		}).click(function() 
+		{
+			alert( "Running the last action" );
+		}).next().button({
+			text: true,
+			icons: 
+			{
+				primary: "ui-icon-trash"
+			}
+		}).click(function() 
+		{
+			alert("hhhh");
+		}).parent().buttonset();
+
+		$( "#nextposts" ).button({
+			text: true,
+		}).click(function() 
+		{
+			alert( "Running the last action" );
+		})
+
+		$( "#prevposts" ).button({
+			text: true,
+		}).click(function() 
+		{
+			alert( "Running the last action" );
+		})
+				
 	});
-})(jQuery);
+</script>
+
+<script type="text/javascript"> 
+	(function($) 
+	{
+		$(document).ready(function() 
+		{
+			$('#wysiwyg').wysiwyg({
+			  controls: {
+				bold          : { visible : true },
+				italic        : { visible : true },
+				underline     : { visible : true },
+				strikeThrough : { visible : true },
+			
+				justifyLeft   : { visible : true },
+				justifyCenter : { visible : true },
+				justifyRight  : { visible : true },
+				justifyFull   : { visible : true },
+ 
+				indent  : { visible : true },
+				outdent : { visible : true },
+ 
+				subscript   : { visible : true },
+				superscript : { visible : true },
+			
+				undo : { visible : true },
+				redo : { visible : true },
+			
+				insertOrderedList    : { visible : true },
+				insertUnorderedList  : { visible : true },
+				insertHorizontalRule : { visible : true },
+ 
+				h4: {
+					visible: true,
+					className: 'h4',
+					command: ($.browser.msie || $.browser.safari) ? 'formatBlock' : 'heading',
+					arguments: ($.browser.msie || $.browser.safari) ? '<h4>' : 'h4',
+					tags: ['h4'],
+					tooltip: 'Header 4'
+				},
+				h5: {
+					visible: true,
+					className: 'h5',
+					command: ($.browser.msie || $.browser.safari) ? 'formatBlock' : 'heading',
+					arguments: ($.browser.msie || $.browser.safari) ? '<h5>' : 'h5',
+					tags: ['h5'],
+					tooltip: 'Header 5'
+				},
+				h6: {
+					visible: true,
+					className: 'h6',
+					command: ($.browser.msie || $.browser.safari) ? 'formatBlock' : 'heading',
+					arguments: ($.browser.msie || $.browser.safari) ? '<h6>' : 'h6',
+					tags: ['h6'],
+					tooltip: 'Header 6'
+				},
+			
+				cut   : { visible : true },
+				copy  : { visible : true },
+				paste : { visible : true },
+				html  : { visible: true },
+				increaseFontSize : { visible : true },
+				decreaseFontSize : { visible : true },
+				exam_html: {
+					exec: function() {
+						this.insertHtml('<abbr title="exam">Jam</abbr>');
+						return true;
+					},
+					visible: true
+				}
+			  },
+			  events: {
+				click: function(event) {
+					if ($("#click-inform:checked").length > 0) {
+						event.preventDefault();
+						alert("You have clicked jWysiwyg content!");
+					}
+				}
+			  }
+			});
+ 
+			$('#wysiwyg').wysiwyg("insertHtml", "Sample code");
+		});
+	})(jQuery);
 </script> 
+
 		<style type="text/css">
 			/*demo page css*/
 			body{ font: 62.5% "Trebuchet MS", sans-serif; margin: 50px;}
@@ -205,8 +295,8 @@ $( "#prevposts" )
 
 
 		<!-- Tabs -->
-		<h2 class="demoHeaders">Tabs</h2>
-		<div id="tabs">
+		<h2 class="demoHeaders">Dashboard</h2>
+		<div id="tabs" style="position:absolute;left:50%;margin-left:-400px;width:800px;">
 			<ul>
 				<li><a href="#tabs-1">All Posts</a></li>
 				<li><a href="#tabs-2">New/Edit Post</a></li>
@@ -239,17 +329,26 @@ border-radius: 4px;">答辩</div></td>
 </td></tr></table>
 </div>
 </div>
-			<div id="tabs-2"><div id="form_area">
-	<form action="post.php" method="POST">
-		<div class="rowElem"><label>Entry Title:</label></div><div><input type="text" name="title"/></div>
-		<div class="rowElem"><label>Entry:</label> <textarea style="width:500px;" id="wysiwyg" cols="40" rows="12" name="entry"></textarea></div>
+			<div id="tabs-2">
 
-		<div class="rowElem"><label>Tags (Separate by comma):</label><input type="text" name="tag" /></div>
-		
-		<div class="rowElem"><input type="button" value="Save" /><input type="button" value="Publish" /><input type="button" value="Close" /></div>
-				
+
+<div id="form_area" style="width:100%;">
+	<form>
+
+	<div style="width:100%;display:table-row;">Entry Title:</div><br/>
+	<div style="width:100%;display:table-row;"><input type="text" name="title" size="70"/></div><br/>
+        <div style="width:100%;display:table-row;">Entry:</div><br/>
+ 	<div style="width:100%;display:table-row;"><textarea style="width:500px;" id="wysiwyg" cols="84" rows="32" name="entry" ></textarea></div><br/>
+
+	<div style="width:100%;display:table-row;">Tags (comma separated):</div><br/>
+	<div style="width:100%;display:table-row;"><input type="text" name="tag" size="70"/><div>
+	
 	</form>
-</div></div>
+<div style="width:100%;display:table-row;padding:10px;float:right;"><button id="editsave" style="float:right;">Save</button><button id="editpublish" style="float:right;">Publish/Close</button><button id="editclose" style="float:right;">Close</button></div>
+</div>
+
+
+</div>
 			<div id="tabs-3">Nam dui erat, auctor a, dignissim quis, sollicitudin eu, felis. Pellentesque nisi urna, interdum eget, sagittis et, consequat vestibulum, lacus. Mauris porttitor ullamcorper augue.</div>
 		</div>
 	

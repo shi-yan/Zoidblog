@@ -26,6 +26,7 @@ result |=   addPostHandler("/test","handleTestPost");
     result |= addPostHandler("/imageupload","handleImageUploadPost");
 
     result |= addGetHandler("/admin","adminGetHandler");
+    result |= addPostHandler("/save","savePostHandler");
 
     PageTemplate templateA;
     templateA.setTemplate("<br><p>{{{sometext_here}}}</p>\r\n");
@@ -101,3 +102,11 @@ void Zoidblog::adminGetHandler(HttpRequest &,HttpResponse &response)
 
     response.finish();
 }
+
+ void Zoidblog::savePostHandler(HttpRequest &req,HttpResponse&response)
+ {
+     qDebug()<<req.getHeader().toString();
+     qDebug()<<req.getRawData();
+     response<<"adsofjaklsjdflaksjdf;";
+     response.finish();
+ }

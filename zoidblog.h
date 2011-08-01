@@ -26,6 +26,7 @@ public slots:
     void handleImageUploadPost(HttpRequest &,HttpResponse &);
 
     void adminGetHandler(HttpRequest &,HttpResponse &);
+    void savePostHandler(HttpRequest&,HttpResponse&);
 };
 
 #endif // ZOIDBLOG_H
